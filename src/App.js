@@ -4,12 +4,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { supabase } from "./supabaseClient";
 
 // Pages
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
+import LoginPage from "./Pages/LoginPage";
+import SignupPage from "./Pages/SignupPage";
 import EntryPage from "./components/EntryPage";
 import RecruitmentForm from "./components/RecruitmentForm";
 import MinorRecruitmentForm from "./components/MinorRecruitmentform";
-import AdminLogin from "./pages/AdminLogin";
+import AdminLogin from "./Pages/AdminLogin";
 import AdminDashboard from "./components/AdminDashboard";
 import UserManagementPage from "./pages/UserManagementPage";
 

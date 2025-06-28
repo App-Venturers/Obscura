@@ -5,7 +5,7 @@ import { supabase } from "./supabaseClient";
 import EntryPage from "./components/EntryPage";
 import RecruitmentForm from "./components/RecruitmentForm";
 import MinorRecruitmentForm from "./components/MinorRecruitmentform";
-import AdminLogin from "./pages/AdminLogin";
+import AdminLogin from "./Pages/AdminLogin";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminStatusHistoryTab from "./components/AdminStatusHistoryTab";
 import SignupPage from "./Pages/SignupPage";
