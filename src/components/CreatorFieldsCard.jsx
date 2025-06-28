@@ -163,7 +163,7 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
           </label>
 
           <div>
-            <label className="block font-semibold text-purple-300 mb-1">Start Year of Creating Content</label>
+            <label className="block font-semibold text-purple-300 mb-1">Starting year for content creation</label>
             <input
               name="yearsCreating"
               type="number"

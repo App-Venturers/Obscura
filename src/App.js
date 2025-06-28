@@ -1,24 +1,23 @@
-// File: src/App.js
-import React from "react";
+// src/App.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import EntryPage from "./components/EntryPage";
-import RecruitmentForm from "./components/RecruitmentForm";
-import MinorRecruitmentForm from "./components/MinorRecruitmentform";
-import AdminLogin from "./Pages/AdminLogin";
+import SignupPage from "./Pages/SignupPage";
 import AdminDashboard from "./components/AdminDashboard";
+import UserManagementPage from "./pages/UserManagementPage";
+import NotFound from "./pages/NotFound"; // optional fallback
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<EntryPage />} />
-        <Route path="/recruitment" element={<RecruitmentForm />} />
-        <Route path="/minor-recruitment" element={<MinorRecruitmentForm />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/user-management" element={<UserManagementPage />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
 }
 
-export default App;
+export default App;S

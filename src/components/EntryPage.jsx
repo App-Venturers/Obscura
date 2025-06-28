@@ -1,15 +1,35 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
+import { supabase } from "../supabaseClient"; // Adjust path if needed
 
 export default function EntryPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [animateOut, setAnimateOut] = useState(false);
+  const [showAdminButton, setShowAdminButton] = useState(false);
 
   useEffect(() => {
     const timer1 = setTimeout(() => setAnimateOut(true), 1000);
     const timer2 = setTimeout(() => setLoading(false), 2000);
+
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (data?.role === "admin" || data?.role === "superadmin") {
+          setShowAdminButton(true);
+        }
+      }
+    };
+
+    checkAdmin();
+
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -70,12 +90,15 @@ export default function EntryPage() {
           >
             I'm being recruited
           </button>
-          <button
-            onClick={() => handleOption("admin")}
-            className="bg-gray-700 hover:bg-gray-600 active:scale-95 px-6 py-3 rounded-lg shadow-lg font-semibold transition-transform duration-200 transform hover:scale-105"
-          >
-            I'm an admin
-          </button>
+
+          {showAdminButton && (
+            <button
+              onClick={() => handleOption("admin")}
+              className="bg-gray-700 hover:bg-gray-600 active:scale-95 px-6 py-3 rounded-lg shadow-lg font-semibold transition-transform duration-200 transform hover:scale-105"
+            >
+              I'm an admin
+            </button>
+          )}
         </div>
 
         <div className="relative w-full max-w-3xl">

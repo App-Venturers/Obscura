@@ -1,16 +1,8 @@
-// FULL Admin Dashboard Code
-// ✅ Server-side pagination
-// ✅ Row count dropdown
-// ✅ Status filtering
-// ✅ Modal editing
-// ✅ Overview stats (Total, Approved, Declined, Banned)
-// ✅ CSV import/export
-// ✅ Bulk actions
-
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { CSVLink } from "react-csv";
 import Papa from "papaparse";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const [view, setView] = useState("overview");
@@ -24,6 +16,8 @@ export default function AdminDashboard() {
   const [totalCount, setTotalCount] = useState(0);
   const [overviewCounts, setOverviewCounts] = useState({ total: 0, approved: 0, declined: 0, banned: 0 });
   const [modalData, setModalData] = useState(null);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
+  const navigate = useNavigate();
 
   const fetchOverviewStats = async () => {
     const tables = ["applicants", "minor_applicants"];
@@ -53,8 +47,22 @@ export default function AdminDashboard() {
   }, [currentPage, rowsPerPage, statusFilter, view]);
 
   useEffect(() => {
-    if (view === "overview") fetchOverviewStats();
-    else fetchData();
+    const fetchInitial = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: roleData } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        setCurrentUserRole(roleData?.role);
+      }
+
+      if (view === "overview") fetchOverviewStats();
+      else fetchData();
+    };
+
+    fetchInitial();
   }, [view, currentPage, rowsPerPage, statusFilter, fetchData]);
 
   useEffect(() => {
@@ -109,18 +117,26 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen p-6 text-white bg-[#0f172a]">
       <div className="bg-gray-900 p-6 rounded-xl shadow-lg max-w-7xl mx-auto">
+
+        {/* ✅ Manage Users Button for Superadmin */}
+        {currentUserRole === "superadmin" && (
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => navigate("/user-management")}
+              className="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded shadow"
+            >
+              Manage Users
+            </button>
+          </div>
+        )}
+
+        {/* View Tabs */}
         <div className="flex justify-center gap-4 mb-4">
           {["overview", "applicants", "minor_applicants"].map(v => (
             <button key={v} onClick={() => setView(v)} className={`px-4 py-2 rounded ${view === v ? "bg-purple-600" : "bg-gray-700"}`}>{v.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</button>
           ))}
         </div>
-
-        {view !== "overview" && selectedRows.length > 0 && (
-          <div className="flex gap-4 mb-4">
-            <button onClick={() => handleBulkStatus("approved")} className="bg-green-600 px-4 py-2 rounded">Bulk Approve</button>
-            <button onClick={() => handleBulkStatus("declined")} className="bg-red-600 px-4 py-2 rounded">Bulk Decline</button>
-          </div>
-        )}
+     
 
         {view === "overview" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center text-xl text-white">
