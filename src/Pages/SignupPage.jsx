@@ -160,16 +160,16 @@ export default function SignupPage() {
         </p>
 
         <div className="flex justify-center space-x-6 mt-6">
-          {["youtube", "facebook", "tiktok"].map((platform) => (
-            <a key={platform} href={`https://${platform}.com`} target="_blank" rel="noreferrer">
-              <img
-                src={`https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//${platform.charAt(0).toUpperCase() + platform.slice(1)}.png`}
-                alt={platform}
-                className="h-6 w-6 hover:scale-110 transition"
-              />
-            </a>
-          ))}
-        </div>
+  {["youtube", "Facebook", "TikTok"].map((platform) => (
+    <a key={platform} href={`https://${platform}.com`} target="_blank" rel="noreferrer">
+      <img
+        src={`https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets/${platform}.png`}
+        alt={platform}
+        className="h-6 w-6 hover:scale-110 transition"
+      />
+    </a>
+  ))}
+</div>
       </div>
 
       {/* ✅ Confirmation Modal */}

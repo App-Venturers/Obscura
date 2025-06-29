@@ -1,17 +1,8 @@
 // File: src/App.js
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import { supabase } from "./supabaseClient";
-
-// Pages
-import LoginPage from "./Pages/LoginPage";
-import SignupPage from "./Pages/SignupPage";
-import EntryPage from "./components/EntryPage";
-import RecruitmentForm from "./components/RecruitmentForm";
-import MinorRecruitmentForm from "./components/MinorRecruitmentform";
-import AdminLogin from "./Pages/AdminLogin";
-import AdminDashboard from "./components/AdminDashboard";
-import UserManagementPage from "./pages/UserManagementPage";
+import AppRoutes from "./routes";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -36,26 +27,9 @@ function App() {
   if (checking) return <div className="p-6 text-center">Loading...</div>;
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        
-        {user ? (
-          <>
-            <Route path="/entry" element={<EntryPage />} />
-            <Route path="/recruitment" element={<RecruitmentForm />} />
-            <Route path="/minor-recruitment" element={<MinorRecruitmentForm />} />
-            <Route path="/admin-login" element={<AdminLogin />} />
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-            <Route path="/user-management" element={<UserManagementPage />} />
-            <Route path="*" element={<Navigate to="/entry" />} />
-          </>
-        ) : (
-          <Route path="*" element={<Navigate to="/" />} />
-        )}
-      </Routes>
-    </Router>
+    <BrowserRouter>
+      <AppRoutes user={user} />
+    </BrowserRouter>
   );
 }
 
