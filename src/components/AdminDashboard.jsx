@@ -268,13 +268,13 @@ const updateStatus = async (id, newStatus, notes = "") => {
                       <div key={key} className="mb-3">
                         <label className="block text-sm font-semibold mb-1 capitalize">{key}</label>
                         {typeof value === "boolean" ? (
-                          <select className="w-full p-2 border rounded" value={String(value)} onChange={handleFieldChange}>
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                          </select>
-                        ) : (
-                          <input className="w-full p-2 border rounded" type="text" value={value || ""} onChange={handleFieldChange} />
-                        )}
+  <select className="w-full p-2 border rounded bg-white text-black" value={String(value)} onChange={handleFieldChange}>
+    <option value="true">Yes</option>
+    <option value="false">No</option>
+  </select>
+) : (
+  <input className="w-full p-2 border rounded bg-white text-black" type="text" value={value || ""} onChange={handleFieldChange} />
+)}
                       </div>
                     );
                   })}
