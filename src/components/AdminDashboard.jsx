@@ -3,6 +3,7 @@ import { supabase } from "../supabaseClient";
 import { CSVLink } from "react-csv";
 import Papa from "papaparse";
 import { useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
 
 export default function AdminDashboard() {
   const [view, setView] = useState("overview");
@@ -18,6 +19,18 @@ export default function AdminDashboard() {
   const [modalData, setModalData] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
   const navigate = useNavigate();
+
+  const generatePDF = async (row) => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Recruitment Record", 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Full Name: ${row.fullName}`, 14, 35);
+    doc.text(`Status: ${row.status}`, 14, 45);
+    doc.text(`Email: ${row.email || "-"}`, 14, 55);
+    doc.text(`Submitted: ${new Date(row.created_at).toLocaleDateString()}`, 14, 65);
+    doc.save(`Recruitment_${row.fullName.replace(" ", "_")}.pdf`);
+  };
 
   const fetchOverviewStats = async () => {
     const tables = ["applicants", "minor_applicants"];
@@ -73,7 +86,7 @@ export default function AdminDashboard() {
     }
   }, [search, data]);
 
-  const updateStatus = async (id, newStatus, notes = "") => {
+const updateStatus = async (id, newStatus, notes = "") => {
     const { error } = await supabase.from(view).update({ status: newStatus, decline_notes: notes }).eq("id", id);
     if (!error) fetchData();
   };
@@ -204,10 +217,13 @@ export default function AdminDashboard() {
                       <td className="p-2 border capitalize">{row.status}</td>
                       <td className="p-2 border">{new Date(row.created_at).toLocaleDateString()}</td>
                       <td className="p-2 border space-y-1">
-                        <button onClick={() => updateStatus(row.id, "approved")} className="bg-green-600 px-2 py-1 rounded">Approve</button>
-                        <button onClick={() => { const notes = prompt("Decline reason"); if (notes) updateStatus(row.id, "declined", notes); }} className="bg-red-600 px-2 py-1 rounded">Decline</button>
-                        <button onClick={() => updateStatus(row.id, "banned")} className="bg-black px-2 py-1 rounded">Ban</button>
-                        <button onClick={() => setModalData(row)} className="bg-blue-600 px-2 py-1 rounded">Edit</button>
+            <td className="p-2 border space-y-1 flex flex-col sm:flex-row sm:gap-2">
+  <button onClick={() => updateStatus(row.id, "approved")} className="bg-green-600 px-2 py-1 rounded">Approve</button>
+  <button onClick={() => { const notes = prompt("Decline reason"); if (notes) updateStatus(row.id, "declined", notes); }} className="bg-red-600 px-2 py-1 rounded">Decline</button>
+  <button onClick={() => updateStatus(row.id, "banned")} className="bg-black px-2 py-1 rounded">Ban</button>
+  <button onClick={() => generatePDF(row)} className="bg-blue-500 px-2 py-1 rounded">Download PDF</button>
+  <button onClick={() => setModalData(row)} className="bg-blue-600 px-2 py-1 rounded">Edit</button>
+</td>
                       </td>
                     </tr>
                   ))}

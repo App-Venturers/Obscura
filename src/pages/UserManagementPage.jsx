@@ -116,14 +116,22 @@ export default function UserManagementPage() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white p-6">
       <div className="max-w-6xl mx-auto bg-gray-900 p-6 rounded-xl shadow-xl">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <h1 className="text-3xl font-bold">User Management</h1>
-          <button
-            onClick={syncUsers}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
-          >
-            Sync Now
-          </button>
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={() => navigate("/admin-dashboard")}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow"
+            >
+              Back to Admin Dashboard
+            </button>
+            <button
+              onClick={syncUsers}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+            >
+              Sync Now
+            </button>
+          </div>
         </div>
 
         <div className="flex justify-end mb-4">

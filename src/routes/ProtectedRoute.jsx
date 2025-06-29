@@ -2,7 +2,6 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-// Helper: check if user has required role
 const hasAccess = (userRole, requiredRole) => {
   if (!requiredRole) return true;
   if (requiredRole === "admin") return ["admin", "superadmin"].includes(userRole);
@@ -11,10 +10,9 @@ const hasAccess = (userRole, requiredRole) => {
 };
 
 const ProtectedRoute = ({ user, role, children }) => {
-  const userRole = user?.user_metadata?.role || "user";
+  const userRole = role || "user"; // ✅ use passed-down role from App.js
 
   if (!user) return <Navigate to="/" replace />;
-
   if (!hasAccess(userRole, role)) return <Navigate to="/entry" replace />;
 
   return children;

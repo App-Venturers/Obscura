@@ -19,7 +19,7 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -29,7 +29,38 @@ export default function AdminLogin() {
         return;
       }
 
-      navigate("/admin-dashboard");
+      const user = data.user;
+      console.log("🧠 USER DEBUG:", user);
+
+      // Try to get role from user metadata first
+      let role = user?.user_metadata?.role;
+
+      // If missing, fallback to users table
+      if (!role) {
+        const { data: profile, error: profileError } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.warn("Could not fetch role from users table:", profileError.message);
+        }
+
+        role = profile?.role || "user";
+      }
+
+      console.log("🔐 Resolved Role:", role);
+
+      // Redirect based on role
+      if (role === "superadmin") {
+        navigate("/admin-dashboard");
+      } else if (role === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/entry");
+      }
+
     } catch (err) {
       console.error("Login error:", err);
       setError("Network or server error. Please try again.");

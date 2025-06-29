@@ -7,46 +7,90 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [roleBadge, setRoleBadge] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setRoleBadge("");
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      setError("Invalid email or password.");
-      setLoading(false);
-      return;
+      if (error) {
+        setError("Invalid email or password.");
+        setLoading(false);
+        return;
+      }
+
+      const user = data.user;
+      console.log("🔐 Auth ID:", user.id);
+
+      // 🔍 Get role from users table by matching ID
+      const { data: userRecord, error: roleError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      const role = userRecord?.role || "user";
+      console.log("🎖 Logged in as:", role);
+      setRoleBadge(role);
+
+      // Redirect based on role after short badge delay
+      setTimeout(() => {
+        if (role === "superadmin") navigate("/entry");
+        else if (role === "admin") navigate("/entry");
+        else navigate("/entry");
+      }, 1200);
+
+    } catch (err) {
+      console.error("Unexpected login error:", err.message);
+      setError("Something went wrong. Please try again.");
     }
 
-    navigate("/entry");
+    setLoading(false);
   };
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center flex items-center justify-center px-4"
+      className="min-h-screen bg-cover bg-center flex items-center justify-center px-4 relative"
       style={{
         backgroundImage:
           "url('https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//wallpaperflare.com_wallpaper%20(57).jpg')",
       }}
     >
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 text-center">
-        {/* Logo */}
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 text-center relative z-10">
         <img
           src="https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//ObscuraLogo.png"
           alt="Obscura Logo"
           className="h-16 mx-auto mb-3"
         />
 
-        <h2 className="text-3xl font-bold mb-6 text-gray-900">Welcome Back</h2>
+        <h2 className="text-3xl font-bold mb-4 text-gray-900">Welcome Back</h2>
 
         {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
+        {roleBadge && (
+          <p className="text-sm mb-4">
+            Role detected:{" "}
+            <span
+              className={`inline-block px-2 py-1 rounded text-white font-semibold text-xs ${
+                roleBadge === "superadmin"
+                  ? "bg-red-600"
+                  : roleBadge === "admin"
+                  ? "bg-green-600"
+                  : "bg-blue-600"
+              }`}
+            >
+              {roleBadge}
+            </span>
+          </p>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-4 text-left">
           <div>
@@ -114,6 +158,13 @@ export default function LoginPage() {
           </a>
         </div>
       </div>
+
+      {/* 🔄 Spinner Overlay */}
+      {loading && (
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+        </div>
+      )}
     </div>
   );
 }

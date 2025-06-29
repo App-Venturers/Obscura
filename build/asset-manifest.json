@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.a5f6a308.css",
-    "main.js": "/static/js/main.4f2543dd.js",
+    "main.css": "/static/css/main.94b1763b.css",
+    "main.js": "/static/js/main.9a0d365c.js",
     "reactPlayerYouTube.js": "/static/js/reactPlayerYouTube.24011ab9.chunk.js",
     "reactPlayerSoundCloud.js": "/static/js/reactPlayerSoundCloud.dd12237f.chunk.js",
     "reactPlayerVimeo.js": "/static/js/reactPlayerVimeo.a912c737.chunk.js",
@@ -16,9 +16,12 @@
     "reactPlayerKaltura.js": "/static/js/reactPlayerKaltura.e93798d4.chunk.js",
     "reactPlayerFilePlayer.js": "/static/js/reactPlayerFilePlayer.620e3359.chunk.js",
     "reactPlayerPreview.js": "/static/js/reactPlayerPreview.cc7ca114.chunk.js",
+    "static/js/239.cf8ef37e.chunk.js": "/static/js/239.cf8ef37e.chunk.js",
+    "static/js/977.88a294c1.chunk.js": "/static/js/977.88a294c1.chunk.js",
+    "static/js/455.bd9c5d60.chunk.js": "/static/js/455.bd9c5d60.chunk.js",
     "index.html": "/index.html",
-    "main.a5f6a308.css.map": "/static/css/main.a5f6a308.css.map",
-    "main.4f2543dd.js.map": "/static/js/main.4f2543dd.js.map",
+    "main.94b1763b.css.map": "/static/css/main.94b1763b.css.map",
+    "main.9a0d365c.js.map": "/static/js/main.9a0d365c.js.map",
     "reactPlayerYouTube.24011ab9.chunk.js.map": "/static/js/reactPlayerYouTube.24011ab9.chunk.js.map",
     "reactPlayerSoundCloud.dd12237f.chunk.js.map": "/static/js/reactPlayerSoundCloud.dd12237f.chunk.js.map",
     "reactPlayerVimeo.a912c737.chunk.js.map": "/static/js/reactPlayerVimeo.a912c737.chunk.js.map",
@@ -32,10 +35,13 @@
     "reactPlayerVidyard.bf94ec13.chunk.js.map": "/static/js/reactPlayerVidyard.bf94ec13.chunk.js.map",
     "reactPlayerKaltura.e93798d4.chunk.js.map": "/static/js/reactPlayerKaltura.e93798d4.chunk.js.map",
     "reactPlayerFilePlayer.620e3359.chunk.js.map": "/static/js/reactPlayerFilePlayer.620e3359.chunk.js.map",
-    "reactPlayerPreview.cc7ca114.chunk.js.map": "/static/js/reactPlayerPreview.cc7ca114.chunk.js.map"
+    "reactPlayerPreview.cc7ca114.chunk.js.map": "/static/js/reactPlayerPreview.cc7ca114.chunk.js.map",
+    "239.cf8ef37e.chunk.js.map": "/static/js/239.cf8ef37e.chunk.js.map",
+    "977.88a294c1.chunk.js.map": "/static/js/977.88a294c1.chunk.js.map",
+    "455.bd9c5d60.chunk.js.map": "/static/js/455.bd9c5d60.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.a5f6a308.css",
-    "static/js/main.4f2543dd.js"
+    "static/css/main.94b1763b.css",
+    "static/js/main.9a0d365c.js"
   ]
 }
