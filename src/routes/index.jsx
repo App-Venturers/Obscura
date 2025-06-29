@@ -6,11 +6,11 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import EntryPage from "../components/EntryPage";
 import RecruitmentForm from "../components/RecruitmentForm";
 import MinorRecruitmentForm from "../components/MinorRecruitmentform";
-import AdminLogin from "../pages/AdminLogin.jsx";
+import AdminLogin from "../pages/pages/AdminLogin.jsx";
 import AdminDashboard from "../components/AdminDashboard";
-import UserManagementPage from "../pages/UserManagementPage";
-import LoginPage from "../pages/LoginPage.jsx";
-import SignupPage from "../pages/SignupPage";
+import UserManagementPage from "../pages/pages/UserManagementPage.jsx";
+import LoginPage from "../pages/pages/LoginPage.jsx";
+import SignupPage from "../pages/pages/SignupPage.jsx";
 
 // Role-based guard HOC
 import ProtectedRoute from "./ProtectedRoute";
