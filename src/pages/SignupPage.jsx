@@ -12,7 +12,6 @@ export default function SignupPage() {
   const [countdown, setCountdown] = useState(5);
   const navigate = useNavigate();
 
-  // 🈯️ Simple translation object
   const t = {
     heading: "Create an Account",
     emailLabel: "Email",
@@ -33,20 +32,25 @@ export default function SignupPage() {
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
         const user = session.user;
-        const { data: existingUser } = await supabase
+
+        const { data: existingUser, error: fetchError } = await supabase
           .from("users")
-          .select("id")
+          .select("id, role")
           .eq("id", user.id)
           .single();
 
-        if (!existingUser) {
-          await supabase.from("users").insert([
+        if (!existingUser && !fetchError) {
+          const { error: insertError } = await supabase.from("users").insert([
             {
               id: user.id,
               email: user.email,
               role: "user",
             },
           ]);
+
+          if (insertError) {
+            console.error("Insert error:", insertError.message);
+          }
         }
 
         navigate("/entry");
@@ -80,10 +84,7 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      const { error: signUpError } = await supabase.auth.signUp({ email, password });
 
       if (signUpError) {
         setError(signUpError.message);
@@ -155,24 +156,22 @@ export default function SignupPage() {
         </form>
 
         <p className="mt-4 text-sm text-gray-600">
-          {t.alreadyHave}{" "}
-          <a href="/" className="text-blue-500 hover:underline">{t.logIn}</a>
+          {t.alreadyHave} <a href="/" className="text-blue-500 hover:underline">{t.logIn}</a>
         </p>
 
         <div className="flex justify-center space-x-6 mt-6">
-  {["youtube", "Facebook", "TikTok"].map((platform) => (
-    <a key={platform} href={`https://${platform}.com`} target="_blank" rel="noreferrer">
-      <img
-        src={`https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets/${platform}.png`}
-        alt={platform}
-        className="h-6 w-6 hover:scale-110 transition"
-      />
-    </a>
-  ))}
-</div>
+          {["youtube", "Facebook", "TikTok"].map((platform) => (
+            <a key={platform} href={`https://${platform}.com`} target="_blank" rel="noreferrer">
+              <img
+                src={`https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets/${platform}.png`}
+                alt={platform}
+                className="h-6 w-6 hover:scale-110 transition"
+              />
+            </a>
+          ))}
+        </div>
       </div>
 
-      {/* ✅ Confirmation Modal */}
       {showConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 animate-fade-in">
           <div className="bg-white p-6 sm:p-4 rounded-xl text-center shadow-lg max-w-sm w-full transform scale-95 animate-scale-in">

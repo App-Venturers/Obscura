@@ -10,6 +10,8 @@ export default function UserManagementPage() {
   const navigate = useNavigate();
 
   const fetchData = async () => {
+    setLoading(true);
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return navigate("/");
     setCurrentUserId(user.id);
@@ -41,8 +43,8 @@ export default function UserManagementPage() {
     fetchData();
 
     const subscription = supabase
-      .channel('users-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+      .channel("users-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "users" }, () => {
         fetchData();
       })
       .subscribe();
@@ -92,12 +94,20 @@ export default function UserManagementPage() {
 
   const promoteToAdmin = async (id) => {
     const { error } = await supabase.from("users").update({ role: "admin" }).eq("id", id);
-    if (error) console.error(error);
+    if (error) {
+      console.error("Promote failed:", error.message);
+    } else {
+      await fetchData(); // ✅ Refresh the UI
+    }
   };
 
   const demoteToUser = async (id) => {
     const { error } = await supabase.from("users").update({ role: "user" }).eq("id", id);
-    if (error) console.error(error);
+    if (error) {
+      console.error("Demote failed:", error.message);
+    } else {
+      await fetchData(); // ✅ Refresh the UI
+    }
   };
 
   const filteredUsers = users.filter((user) => {
