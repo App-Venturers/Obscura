@@ -86,7 +86,7 @@ export default function AdminDashboard() {
     }
   }, [search, data]);
 
-const updateStatus = async (id, newStatus, notes = "") => {
+  const updateStatus = async (id, newStatus, notes = "") => {
     const { error } = await supabase.from(view).update({ status: newStatus, decline_notes: notes }).eq("id", id);
     if (!error) fetchData();
   };
@@ -95,6 +95,13 @@ const updateStatus = async (id, newStatus, notes = "") => {
     if (field === "fullName" || field === "dob") return;
     const { error } = await supabase.from(view).update({ [field]: value }).eq("id", id);
     if (!error) fetchData();
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
+    const { error } = await supabase.from(view).delete().eq("id", id);
+    if (!error) fetchData();
+    else console.error("Delete error:", error);
   };
 
   const handleBulkStatus = async (status) => {
@@ -131,7 +138,6 @@ const updateStatus = async (id, newStatus, notes = "") => {
     <div className="min-h-screen p-6 text-white bg-[#0f172a]">
       <div className="bg-gray-900 p-6 rounded-xl shadow-lg max-w-7xl mx-auto">
 
-        {/* ✅ Manage Users Button for Superadmin */}
         {currentUserRole === "superadmin" && (
           <div className="flex justify-end mb-4">
             <button
@@ -143,13 +149,11 @@ const updateStatus = async (id, newStatus, notes = "") => {
           </div>
         )}
 
-        {/* View Tabs */}
         <div className="flex justify-center gap-4 mb-4">
           {["overview", "applicants", "minor_applicants"].map(v => (
             <button key={v} onClick={() => setView(v)} className={`px-4 py-2 rounded ${view === v ? "bg-purple-600" : "bg-gray-700"}`}>{v.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</button>
           ))}
         </div>
-     
 
         {view === "overview" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center text-xl text-white">
@@ -169,6 +173,7 @@ const updateStatus = async (id, newStatus, notes = "") => {
                 <option value="approved">Approved</option>
                 <option value="declined">Declined</option>
                 <option value="banned">Banned</option>
+                <option value="leaving_pending">Leaving Pending</option>
               </select>
               <select value={rowsPerPage} onChange={(e) => setRowsPerPage(Number(e.target.value))} className="bg-gray-800 border border-gray-600 p-2 rounded">
                 {[10, 25, 50].map(n => <option key={n} value={n}>{n} rows</option>)}
@@ -216,81 +221,59 @@ const updateStatus = async (id, newStatus, notes = "") => {
                       <td className="p-2 border">{row.fullName}</td>
                       <td className="p-2 border capitalize">{row.status}</td>
                       <td className="p-2 border">{new Date(row.created_at).toLocaleDateString()}</td>
-                      <td className="p-2 border space-y-1">
-            <td className="p-2 border space-y-1 flex flex-col sm:flex-row sm:gap-2">
-  <button onClick={() => updateStatus(row.id, "approved")} className="bg-green-600 px-2 py-1 rounded">Approve</button>
-  <button onClick={() => { const notes = prompt("Decline reason"); if (notes) updateStatus(row.id, "declined", notes); }} className="bg-red-600 px-2 py-1 rounded">Decline</button>
-  <button onClick={() => updateStatus(row.id, "banned")} className="bg-black px-2 py-1 rounded">Ban</button>
-  <button onClick={() => generatePDF(row)} className="bg-blue-500 px-2 py-1 rounded">Download PDF</button>
-  <button onClick={() => setModalData(row)} className="bg-blue-600 px-2 py-1 rounded">Edit</button>
-</td>
+                      <td className="p-2 border space-y-1 flex flex-col sm:flex-row sm:gap-2">
+                        <button onClick={() => updateStatus(row.id, "approved")} className="bg-green-600 px-2 py-1 rounded">Approve</button>
+                        <button onClick={() => updateStatus(row.id, "leaving_pending")} className="bg-yellow-500 px-2 py-1 rounded">Mark as Leaving</button>
+                        <button onClick={() => { const notes = prompt("Decline reason"); if (notes) updateStatus(row.id, "declined", notes); }} className="bg-red-600 px-2 py-1 rounded">Decline</button>
+                        <button onClick={() => updateStatus(row.id, "banned")} className="bg-black px-2 py-1 rounded">Ban</button>
+                        <button onClick={() => generatePDF(row)} className="bg-blue-500 px-2 py-1 rounded">Download PDF</button>
+                        <button onClick={() => setModalData(row)} className="bg-blue-600 px-2 py-1 rounded">Edit</button>
+                        <button onClick={() => handleDelete(row.id)} className="bg-red-700 px-2 py-1 rounded">Delete</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+          </>
+        )}
 
-            <div className="mt-4 flex justify-between items-center">
-              <div className="text-sm text-gray-300">
-                Page {currentPage} of {Math.ceil(totalCount / rowsPerPage)}
-              </div>
-              <div className="space-x-2">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => p - 1)}
-                  className="px-3 py-1 bg-gray-700 rounded disabled:opacity-40"
-                >
-                  Prev
-                </button>
-                <button
-                  disabled={currentPage >= Math.ceil(totalCount / rowsPerPage)}
-                  onClick={() => setCurrentPage(p => p + 1)}
-                  className="px-3 py-1 bg-gray-700 rounded disabled:opacity-40"
-                >
-                  Next
-                </button>
+        {modalData && (
+          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+            <div className="bg-gray-900 text-white p-6 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <h2 className="text-lg font-semibold mb-4">Edit Entry</h2>
+              {Object.entries(modalData).map(([key, value]) => {
+                if (["id", "fullName", "dob"].includes(key)) return null;
+                const handleFieldChange = (e) => {
+                  let newValue = e.target.value;
+                  if (["camera", "sponsors", "ndaAgreement", "isCreator"].includes(key)) newValue = e.target.value === "true";
+                  setModalData({ ...modalData, [key]: newValue });
+                };
+                return (
+                  <div key={key} className="mb-3">
+                    <label className="block text-sm font-semibold mb-1 capitalize">{key}</label>
+                    {typeof value === "boolean" ? (
+                      <select className="w-full p-2 border rounded bg-white text-black" value={String(value)} onChange={handleFieldChange}>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    ) : (
+                      <input className="w-full p-2 border rounded bg-white text-black" type="text" value={value || ""} onChange={handleFieldChange} />
+                    )}
+                  </div>
+                );
+              })}
+              <div className="flex justify-end gap-2 mt-4">
+                <button onClick={() => setModalData(null)} className="bg-gray-500 px-4 py-2 rounded text-white">Cancel</button>
+                <button onClick={() => {
+                  Object.entries(modalData).forEach(([k, v]) => {
+                    if (!["id", "fullName", "dob"].includes(k)) updateField(modalData.id, k, v);
+                  });
+                  setModalData(null);
+                }} className="bg-purple-600 px-4 py-2 rounded text-white">Save</button>
               </div>
             </div>
-
-            {modalData && (
-              <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-                <div className="bg-gray-900 text-white p-6 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                  <h2 className="text-lg font-semibold mb-4">Edit Entry</h2>
-                  {Object.entries(modalData).map(([key, value]) => {
-                    if (["id", "fullName", "dob"].includes(key)) return null;
-                    const handleFieldChange = (e) => {
-                      let newValue = e.target.value;
-                      if (["camera", "sponsors", "ndaAgreement", "isCreator"].includes(key)) newValue = e.target.value === "true";
-                      setModalData({ ...modalData, [key]: newValue });
-                    };
-                    return (
-                      <div key={key} className="mb-3">
-                        <label className="block text-sm font-semibold mb-1 capitalize">{key}</label>
-                        {typeof value === "boolean" ? (
-  <select className="w-full p-2 border rounded bg-white text-black" value={String(value)} onChange={handleFieldChange}>
-    <option value="true">Yes</option>
-    <option value="false">No</option>
-  </select>
-) : (
-  <input className="w-full p-2 border rounded bg-white text-black" type="text" value={value || ""} onChange={handleFieldChange} />
-)}
-                      </div>
-                    );
-                  })}
-                  <div className="flex justify-end gap-2 mt-4">
-                    <button onClick={() => setModalData(null)} className="bg-gray-500 px-4 py-2 rounded text-white">Cancel</button>
-                    <button onClick={() => {
-                      Object.entries(modalData).forEach(([k, v]) => {
-                        if (!["id", "fullName", "dob"].includes(k)) updateField(modalData.id, k, v);
-                      });
-                      setModalData(null);
-                    }} className="bg-purple-600 px-4 py-2 rounded text-white">Save</button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         )}
       </div>
     </div>

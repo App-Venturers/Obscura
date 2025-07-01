@@ -8,27 +8,50 @@ export default function EntryPage() {
   const [loading, setLoading] = useState(true);
   const [animateOut, setAnimateOut] = useState(false);
   const [showAdminButton, setShowAdminButton] = useState(false);
+  const [showExitFormButton, setShowExitFormButton] = useState(false);
 
   useEffect(() => {
     const timer1 = setTimeout(() => setAnimateOut(true), 1000);
     const timer2 = setTimeout(() => setLoading(false), 2000);
 
-    const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
-          .single();
+    const checkStatus = async () => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
-        if (data?.role === "admin" || data?.role === "superadmin") {
-          setShowAdminButton(true);
-        }
+      console.log("Logged in user:", user);
+
+      // Check admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (roleData?.role === "admin" || roleData?.role === "superadmin") {
+        setShowAdminButton(true);
+      }
+
+      // Check applicant status using email and maybeSingle
+      const { data: applicant, error: appError } = await supabase
+        .from("applicants")
+        .select("status")
+        .eq("id", user.id)
+        .single();
+
+      if (appError) console.warn("Applicants error:", appError.message);
+
+      const status = applicant?.status;
+      console.log("User status:", status);
+
+      if (status?.toLowerCase() === "leaving_pending") {
+        setShowExitFormButton(true);
       }
     };
 
-    checkAdmin();
+    checkStatus();
 
     return () => {
       clearTimeout(timer1);
@@ -56,10 +79,10 @@ export default function EntryPage() {
           <img
             src={assets.logo}
             alt="Obscura Logo"
-            className={`mx-auto w-32 md:w-48 lg:w-56 ${animateOut ? 'animate-door-open' : ''}`}
+            className={`mx-auto w-32 md:w-48 lg:w-56 ${animateOut ? "animate-door-open" : ""}`}
           />
           <h1
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-purple-200 mt-4 shadow-lg ${animateOut ? 'animate-fade-up' : ''}`}
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-purple-200 mt-4 shadow-lg ${animateOut ? "animate-fade-up" : ""}`}
           >
             Welcome to Obscura
           </h1>
@@ -99,10 +122,18 @@ export default function EntryPage() {
               I'm an admin
             </button>
           )}
+
+          {showExitFormButton && (
+            <button
+              onClick={() => navigate("/exitform")}
+              className="bg-green-600 hover:bg-green-700 active:scale-95 px-6 py-3 rounded-lg shadow-lg font-semibold transition-transform duration-200 transform hover:scale-105"
+            >
+              Exit Form
+            </button>
+          )}
         </div>
 
         <div className="relative w-full max-w-3xl">
-          {/* Desktop Sidebar Socials */}
           <div className="hidden md:flex flex-col gap-4 absolute left-4 top-0 bottom-0 justify-center z-10">
             <a href="https://www.tiktok.com/@obscura_e_sports?_t=8r4yZXkvp6E&_r=1" target="_blank" rel="noopener noreferrer">
               <img src={assets.tiktok} alt="TikTok" className="w-8 md:w-10 hover:scale-110 transition" />
@@ -129,7 +160,6 @@ export default function EntryPage() {
             className="rounded-xl shadow-2xl"
           />
 
-          {/* Mobile Icons */}
           <div className="flex md:hidden justify-center gap-6 mt-4">
             <img src={assets.tiktok} alt="TikTok" className="w-8 hover:scale-110 transition" />
             <img src={assets.twitter} alt="Twitter" className="w-8 hover:scale-110 transition" />
