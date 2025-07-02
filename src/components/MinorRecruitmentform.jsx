@@ -1,6 +1,8 @@
+// MinorRecruitmentForm.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import CreatorFieldsCard from "./CreatorFieldsCard";
+import { useNavigate } from "react-router-dom";
 
 const Button = (props) => (
   <button
@@ -15,35 +17,34 @@ const Button = (props) => (
 );
 
 export default function MinorRecruitmentForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: "",
+    fullname: "",
     email: "",
     phone: "",
     dob: "",
-    guardianName: "",
-    guardianEmail: "",
-    guardianPhone: "",
-    isCreator: "no",
-    creatorName: "",
+    guardianname: "",
+    guardianemail: "",
+    guardianphone: "",
+    iscreator: "no",
+    creator_name: "",
     timezone: "",
     platforms: [],
-    otherPlatform: "",
+    other_platform: "",
     schedule: "",
-    contentType: "",
+    content_type: "",
     games: "",
     languages: [],
     internet: "",
     software: [],
     equipment: "",
-    yearsCreating: "",
+    years_creating: "",
     sponsors: false,
-    sponsorList: "",
+    sponsorlist: "",
     camera: false,
     collabs: "no",
-    creatorGoals: "",
-    creatorNotes: "",
-    ndaAgreementNotice:
-      "Warning: If the NDA is not completed via Adobe Sign, your application may be declined.",
+    creator_goals: "",
+    creator_notes: "",
   });
 
   const [showCreatorFields, setShowCreatorFields] = useState(false);
@@ -69,17 +70,41 @@ export default function MinorRecruitmentForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return alert("Authentication error. Please re-login.");
 
-    const { error: insertError } = await supabase
-      .from("minor_applicants")
-      .insert([formData]);
+    const {
+      yearsCreating,
+      sponsors,
+      camera,
+      ...rest
+    } = formData;
 
-    if (insertError) {
-      alert("Submission failed: " + insertError.message);
-    } else {
-      alert("Application submitted successfully!");
-      window.location.reload();
+    const cleanedData = {
+      ...rest,
+      years_creating: yearsCreating === "" ? null : parseInt(yearsCreating, 10),
+      sponsors: !!sponsors,
+      camera: !!camera,
+      is_minor: true,
+      status: "pending",
+      nda_agreement: true,
+      guardian_name: formData.guardianname,
+      guardian_email: formData.guardianemail,
+      guardian_phone: formData.guardianphone,
+    };
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update(cleanedData)
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Minor recruitment error:", updateError.message);
+      return alert("Submission failed. Please try again.");
     }
+
+    alert("Minor application submitted successfully!");
+    navigate("/");
   };
 
   if (loading) {
@@ -178,7 +203,7 @@ export default function MinorRecruitmentForm() {
           </div>
 
           <div className="text-yellow-300 text-sm border border-yellow-500 rounded p-3">
-            {formData.ndaAgreementNotice}
+            Warning: If the NDA is not completed via Adobe Sign, your application may be declined.
           </div>
 
           <div>

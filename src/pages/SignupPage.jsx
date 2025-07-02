@@ -33,9 +33,10 @@ export default function SignupPage() {
       if (event === "SIGNED_IN" && session?.user) {
         const user = session.user;
 
+        // 👤 Check if user already exists in `users` table
         const { data: existingUser, error: fetchError } = await supabase
           .from("users")
-          .select("id, role")
+          .select("id")
           .eq("id", user.id)
           .single();
 
@@ -49,10 +50,11 @@ export default function SignupPage() {
           ]);
 
           if (insertError) {
-            console.error("Insert error:", insertError.message);
+            console.error("❌ Failed to insert into users:", insertError.message);
           }
         }
 
+        // ✅ Redirect
         navigate("/entry");
       }
     });
@@ -93,7 +95,7 @@ export default function SignupPage() {
         setShowConfirmation(true);
       }
     } catch (err) {
-      console.error("Unexpected error:", err.message);
+      console.error("Unexpected signup error:", err.message || err);
       setError("An unexpected error occurred.");
     } finally {
       setLoading(false);
@@ -161,7 +163,7 @@ export default function SignupPage() {
 
         <div className="flex justify-center space-x-6 mt-6">
           {["youtube", "Facebook", "TikTok"].map((platform) => (
-            <a key={platform} href={`https://${platform}.com`} target="_blank" rel="noreferrer">
+            <a key={platform} href={`https://${platform.toLowerCase()}.com`} target="_blank" rel="noreferrer">
               <img
                 src={`https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets/${platform}.png`}
                 alt={platform}

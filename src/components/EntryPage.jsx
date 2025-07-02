@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
-import { supabase } from "../supabaseClient"; // Adjust path if needed
+import { supabase } from "../supabaseClient";
 
 export default function EntryPage() {
   const navigate = useNavigate();
@@ -14,44 +14,33 @@ export default function EntryPage() {
     const timer1 = setTimeout(() => setAnimateOut(true), 1000);
     const timer2 = setTimeout(() => setLoading(false), 2000);
 
-    const checkStatus = async () => {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+    const checkUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
       if (!user) return;
 
-      console.log("Logged in user:", user);
-
-      // Check admin role
-      const { data: roleData, error: roleError } = await supabase
+      const { data: userRecord, error: roleError } = await supabase
         .from("users")
-        .select("role")
+        .select("role, status")
         .eq("id", user.id)
         .single();
 
-      if (roleData?.role === "admin" || roleData?.role === "superadmin") {
-        setShowAdminButton(true);
+      if (roleError || !userRecord) {
+        console.warn("Unable to fetch user role/status:", roleError?.message);
+        return;
       }
 
-      // Check applicant status using email and maybeSingle
-      const { data: applicant, error: appError } = await supabase
-        .from("applicants")
-        .select("status")
-        .eq("id", user.id)
-        .single();
+      const { role, status } = userRecord;
 
-      if (appError) console.warn("Applicants error:", appError.message);
-
-      const status = applicant?.status;
-      console.log("User status:", status);
+      if (["admin", "superadmin"].includes(role)) {
+        setShowAdminButton(true);
+      }
 
       if (status?.toLowerCase() === "leaving_pending") {
         setShowExitFormButton(true);
       }
     };
 
-    checkStatus();
+    checkUser();
 
     return () => {
       clearTimeout(timer1);
@@ -81,9 +70,7 @@ export default function EntryPage() {
             alt="Obscura Logo"
             className={`mx-auto w-32 md:w-48 lg:w-56 ${animateOut ? "animate-door-open" : ""}`}
           />
-          <h1
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-purple-200 mt-4 shadow-lg ${animateOut ? "animate-fade-up" : ""}`}
-          >
+          <h1 className={`text-3xl md:text-4xl lg:text-5xl font-bold text-purple-200 mt-4 shadow-lg ${animateOut ? "animate-fade-up" : ""}`}>
             Welcome to Obscura
           </h1>
         </div>
@@ -135,18 +122,26 @@ export default function EntryPage() {
 
         <div className="relative w-full max-w-3xl">
           <div className="hidden md:flex flex-col gap-4 absolute left-4 top-0 bottom-0 justify-center z-10">
-            <a href="https://www.tiktok.com/@obscura_e_sports?_t=8r4yZXkvp6E&_r=1" target="_blank" rel="noopener noreferrer">
-              <img src={assets.tiktok} alt="TikTok" className="w-8 md:w-10 hover:scale-110 transition" />
-            </a>
-            <a href="https://x.com/Obscuraesports" target="_blank" rel="noopener noreferrer">
-              <img src={assets.twitter} alt="Twitter" className="w-8 md:w-10 hover:scale-110 transition" />
-            </a>
-            <a href="https://www.facebook.com/profile.php?id=61566312790023" target="_blank" rel="noopener noreferrer">
-              <img src={assets.facebook} alt="Facebook" className="w-8 md:w-10 hover:scale-110 transition" />
-            </a>
-            <a href="https://www.youtube.com/@ObscuraEsports" target="_blank" rel="noopener noreferrer">
-              <img src={assets.youtube} alt="YouTube" className="w-8 md:w-10 hover:scale-110 transition" />
-            </a>
+            {["tiktok", "twitter", "facebook", "youtube"].map((platform) => (
+              <a
+                key={platform}
+                href={platform === "tiktok"
+                  ? "https://www.tiktok.com/@obscura_e_sports?_t=8r4yZXkvp6E&_r=1"
+                  : platform === "twitter"
+                  ? "https://x.com/Obscuraesports"
+                  : platform === "facebook"
+                  ? "https://www.facebook.com/profile.php?id=61566312790023"
+                  : "https://www.youtube.com/@ObscuraEsports"}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={assets[platform]}
+                  alt={platform}
+                  className="w-8 md:w-10 hover:scale-110 transition"
+                />
+              </a>
+            ))}
           </div>
 
           <ReactPlayer
@@ -161,10 +156,14 @@ export default function EntryPage() {
           />
 
           <div className="flex md:hidden justify-center gap-6 mt-4">
-            <img src={assets.tiktok} alt="TikTok" className="w-8 hover:scale-110 transition" />
-            <img src={assets.twitter} alt="Twitter" className="w-8 hover:scale-110 transition" />
-            <img src={assets.facebook} alt="Facebook" className="w-8 hover:scale-110 transition" />
-            <img src={assets.youtube} alt="YouTube" className="w-8 hover:scale-110 transition" />
+            {["tiktok", "twitter", "facebook", "youtube"].map((platform) => (
+              <img
+                key={platform}
+                src={assets[platform]}
+                alt={platform}
+                className="w-8 hover:scale-110 transition"
+              />
+            ))}
           </div>
         </div>
       </div>

@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 
 export default function AdminDashboard() {
-  const [view, setView] = useState("overview");
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [search, setSearch] = useState("");
@@ -15,12 +14,14 @@ export default function AdminDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
-  const [overviewCounts, setOverviewCounts] = useState({ total: 0, approved: 0, declined: 0, banned: 0 });
+  const [overviewCounts, setOverviewCounts] = useState({ total: 0, approved: 0, declined: 0, banned: 0, leaving_pending: 0, left: 0 });
   const [modalData, setModalData] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [notesModal, setNotesModal] = useState({ open: false, userId: null });
+  const [noteInput, setNoteInput] = useState("");
   const navigate = useNavigate();
 
-  const generatePDF = async (row) => {
+  const generatePDF = (row) => {
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.text("Recruitment Record", 14, 20);
@@ -33,35 +34,56 @@ export default function AdminDashboard() {
   };
 
   const fetchOverviewStats = async () => {
-    const tables = ["applicants", "minor_applicants"];
-    let total = 0, approved = 0, declined = 0, banned = 0;
-    for (const table of tables) {
-      const { count } = await supabase.from(table).select("*", { count: "exact", head: true });
-      total += count || 0;
-      for (const status of ["approved", "declined", "banned"]) {
-        const { count: c } = await supabase.from(table).select("*", { count: "exact", head: true }).eq("status", status);
-        if (status === "approved") approved += c || 0;
-        if (status === "declined") declined += c || 0;
-        if (status === "banned") banned += c || 0;
-      }
-    }
-    setOverviewCounts({ total, approved, declined, banned });
+    const { count: total } = await supabase
+      .from("users")
+      .select("*", { count: "exact", head: true })
+      .or("fullName.not.is.null,dob.not.is.null")
+
+    const statuses = ["approved", "declined", "banned", "leaving_pending", "left"];
+    const counts = await Promise.all(
+      statuses.map(async (status) => {
+        const { count } = await supabase
+          .from("users")
+          .select("*", { count: "exact", head: true })
+          .or("fullName.not.is.null,dob.not.is.null")
+          .eq("status", status);
+        return count || 0;
+      })
+    );
+
+    setOverviewCounts({
+      total: total || 0,
+      approved: counts[0],
+      declined: counts[1],
+      banned: counts[2],
+      leaving_pending: counts[3],
+      left: counts[4]
+    });
   };
 
   const fetchData = useCallback(async () => {
     const from = (currentPage - 1) * rowsPerPage;
     const to = from + rowsPerPage - 1;
-    let query = supabase.from(view).select("*", { count: "exact" }).order("created_at", { ascending: true }).range(from, to);
+    let query = supabase
+      .from("users")
+      .select("*", { count: "exact" })
+      .or("fullName.not.is.null,dob.not.is.null")
+      .order("created_at", { ascending: true })
+      .range(from, to);
+
     if (statusFilter !== "all") query = query.eq("status", statusFilter);
+
     const { data, error, count } = await query;
     if (error) return console.error("Fetch error:", error);
     setData(data || []);
     setTotalCount(count || 0);
-  }, [currentPage, rowsPerPage, statusFilter, view]);
+  }, [currentPage, rowsPerPage, statusFilter]);
 
   useEffect(() => {
-    const fetchInitial = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    const init = async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
       if (user) {
         const { data: roleData } = await supabase
           .from("users")
@@ -70,47 +92,27 @@ export default function AdminDashboard() {
           .single();
         setCurrentUserRole(roleData?.role);
       }
-
-      if (view === "overview") fetchOverviewStats();
-      else fetchData();
+      fetchOverviewStats();
+      fetchData();
     };
-
-    fetchInitial();
-  }, [view, currentPage, rowsPerPage, statusFilter, fetchData]);
+    init();
+  }, [fetchData]);
 
   useEffect(() => {
     if (search.trim()) {
-      setFilteredData(data.filter(row => Object.values(row).join(" ").toLowerCase().includes(search.toLowerCase())));
+      setFilteredData(
+        data.filter((row) =>
+          Object.values(row).join(" ").toLowerCase().includes(search.toLowerCase())
+        )
+      );
     } else {
       setFilteredData(data);
     }
   }, [search, data]);
 
   const updateStatus = async (id, newStatus, notes = "") => {
-    const { error } = await supabase.from(view).update({ status: newStatus, decline_notes: notes }).eq("id", id);
+    const { error } = await supabase.from("users").update({ status: newStatus, decline_notes: notes }).eq("id", id);
     if (!error) fetchData();
-  };
-
-  const updateField = async (id, field, value) => {
-    if (field === "fullName" || field === "dob") return;
-    const { error } = await supabase.from(view).update({ [field]: value }).eq("id", id);
-    if (!error) fetchData();
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this record?")) return;
-    const { error } = await supabase.from(view).delete().eq("id", id);
-    if (!error) fetchData();
-    else console.error("Delete error:", error);
-  };
-
-  const handleBulkStatus = async (status) => {
-    if (!selectedRows.length) return;
-    const { error } = await supabase.from(view).update({ status }).in("id", selectedRows);
-    if (!error) {
-      setSelectedRows([]);
-      fetchData();
-    }
   };
 
   const handleImportCSV = (e) => {
@@ -120,157 +122,151 @@ export default function AdminDashboard() {
       header: true,
       skipEmptyLines: true,
       complete: async ({ data }) => {
-        const cleaned = data.map(row => ({
+        const cleaned = data.map((row) => ({
           ...row,
           camera: row.camera === "true" || row.camera === "Yes",
           sponsors: row.sponsors === "true" || row.sponsors === "Yes",
           isCreator: row.isCreator === "true" || row.isCreator === "Yes",
-          ndaAgreement: row.ndaAgreement === "true" || row.ndaAgreement === "Yes",
-          yearsCreating: row.yearsCreating ? parseInt(row.yearsCreating) : null
+          nda_agreement: row.ndaAgreement === "true" || row.ndaAgreement === "Yes",
+          years_creating: row.yearsCreating ? parseInt(row.yearsCreating) : null,
+          is_minor: false
         }));
-        const { error } = await supabase.from(view).insert(cleaned);
+        const { error } = await supabase.from("users").insert(cleaned);
         if (!error) fetchData();
       }
     });
   };
 
+  const handleBulkAction = async (status) => {
+    const { error } = await supabase.from("users").update({ status }).in("id", selectedRows);
+    if (!error) {
+      setSelectedRows([]);
+      fetchData();
+    }
+  };
+
+  const openNotesModal = (userId) => {
+    setNotesModal({ open: true, userId });
+    setNoteInput("");
+  };
+
+  const saveNote = async () => {
+    if (!notesModal.userId) return;
+    await updateStatus(notesModal.userId, "declined", noteInput);
+    setNotesModal({ open: false, userId: null });
+    setNoteInput("");
+  };
+
   return (
     <div className="min-h-screen p-6 text-white bg-[#0f172a]">
       <div className="bg-gray-900 p-6 rounded-xl shadow-lg max-w-7xl mx-auto">
-
         {currentUserRole === "superadmin" && (
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-between items-center mb-4">
             <button
               onClick={() => navigate("/user-management")}
               className="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded shadow"
             >
               Manage Users
             </button>
+            {selectedRows.length > 0 && (
+              <div className="flex gap-2">
+                <button onClick={() => handleBulkAction("approved")} className="bg-green-600 px-3 py-1 rounded">Approve All</button>
+                <button onClick={() => handleBulkAction("banned")} className="bg-black px-3 py-1 rounded">Ban All</button>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="flex justify-center gap-4 mb-4">
-          {["overview", "applicants", "minor_applicants"].map(v => (
-            <button key={v} onClick={() => setView(v)} className={`px-4 py-2 rounded ${view === v ? "bg-purple-600" : "bg-gray-700"}`}>{v.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</button>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center text-xl text-white mb-6">
+          {Object.entries(overviewCounts).map(([key, value]) => (
+            <div key={key} className="bg-purple-800 rounded-lg p-4 shadow">
+              <div className="font-bold uppercase">{key.replace(/_/g, " ")}</div>
+              <div className="text-3xl mt-1">{value}</div>
+            </div>
           ))}
         </div>
 
-        {view === "overview" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center text-xl text-white">
-            {Object.entries(overviewCounts).map(([key, value]) => (
-              <div key={key} className="bg-purple-800 rounded-lg p-4 shadow">
-                <div className="font-bold uppercase">{key}</div>
-                <div className="text-3xl mt-1">{value}</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-wrap justify-between mb-4 items-center gap-2">
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." className="p-2 rounded bg-gray-800 border border-gray-600 w-full sm:w-1/3" />
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-gray-800 border border-gray-600 p-2 rounded">
-                <option value="all">All Status</option>
-                <option value="approved">Approved</option>
-                <option value="declined">Declined</option>
-                <option value="banned">Banned</option>
-                <option value="leaving_pending">Leaving Pending</option>
-              </select>
-              <select value={rowsPerPage} onChange={(e) => setRowsPerPage(Number(e.target.value))} className="bg-gray-800 border border-gray-600 p-2 rounded">
-                {[10, 25, 50].map(n => <option key={n} value={n}>{n} rows</option>)}
-              </select>
-              <div className="flex gap-2">
-                <CSVLink data={data} filename={`${view}.csv`} className="bg-blue-500 px-4 py-2 rounded text-white">Export CSV</CSVLink>
-                <label className="bg-green-600 px-4 py-2 rounded text-white cursor-pointer">
-                  Import CSV
-                  <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
-                </label>
-              </div>
-            </div>
+        <div className="flex flex-wrap gap-4 items-center mb-4">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-gray-800 text-white p-2 rounded border border-gray-600"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-gray-800 text-white p-2 rounded border border-gray-600"
+          >
+            <option value="all">All Statuses</option>
+            <option value="approved">Approved</option>
+            <option value="declined">Declined</option>
+            <option value="banned">Banned</option>
+            <option value="leaving_pending">Leaving Pending</option>
+            <option value="left">Left</option>
+          </select>
+          <label className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer">
+            Import CSV
+            <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
+          </label>
+          <CSVLink data={filteredData} filename="applicants.csv" className="bg-blue-600 px-4 py-2 rounded text-white">
+            Export CSV
+          </CSVLink>
+        </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border border-gray-600">
-                <thead>
-                  <tr className="bg-purple-800 text-white">
-                    <th className="p-2 border">
-                      <input
-                        type="checkbox"
-                        onChange={(e) => setSelectedRows(e.target.checked ? filteredData.map(r => r.id) : [])}
-                        checked={selectedRows.length === filteredData.length && filteredData.length > 0}
-                      />
-                    </th>
-                    <th className="p-2 border">Full Name</th>
-                    <th className="p-2 border">Status</th>
-                    <th className="p-2 border">Created</th>
-                    <th className="p-2 border">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.map(row => (
-                    <tr key={row.id} className="hover:bg-gray-800">
-                      <td className="p-2 border text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedRows.includes(row.id)}
-                          onChange={() => setSelectedRows(prev =>
-                            prev.includes(row.id)
-                              ? prev.filter(id => id !== row.id)
-                              : [...prev, row.id]
-                          )}
-                        />
-                      </td>
-                      <td className="p-2 border">{row.fullName}</td>
-                      <td className="p-2 border capitalize">{row.status}</td>
-                      <td className="p-2 border">{new Date(row.created_at).toLocaleDateString()}</td>
-                      <td className="p-2 border space-y-1 flex flex-col sm:flex-row sm:gap-2">
-                        <button onClick={() => updateStatus(row.id, "approved")} className="bg-green-600 px-2 py-1 rounded">Approve</button>
-                        <button onClick={() => updateStatus(row.id, "leaving_pending")} className="bg-yellow-500 px-2 py-1 rounded">Mark as Leaving</button>
-                        <button onClick={() => { const notes = prompt("Decline reason"); if (notes) updateStatus(row.id, "declined", notes); }} className="bg-red-600 px-2 py-1 rounded">Decline</button>
-                        <button onClick={() => updateStatus(row.id, "banned")} className="bg-black px-2 py-1 rounded">Ban</button>
-                        <button onClick={() => generatePDF(row)} className="bg-blue-500 px-2 py-1 rounded">Download PDF</button>
-                        <button onClick={() => setModalData(row)} className="bg-blue-600 px-2 py-1 rounded">Edit</button>
-                        <button onClick={() => handleDelete(row.id)} className="bg-red-700 px-2 py-1 rounded">Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border border-gray-700">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="p-2 border"><input type="checkbox" onChange={(e) => setSelectedRows(e.target.checked ? filteredData.map(r => r.id) : [])} checked={selectedRows.length === filteredData.length && filteredData.length > 0} /></th>
+                <th className="p-2 border">Full Name</th>
+                <th className="p-2 border">Email</th>
+                <th className="p-2 border">Minor</th>
+                <th className="p-2 border">Status</th>
+                <th className="p-2 border">Created At</th>
+                <th className="p-2 border">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-700">
+                  <td className="p-2 border text-center">
+                    <input type="checkbox" checked={selectedRows.includes(user.id)} onChange={() => setSelectedRows(prev => prev.includes(user.id) ? prev.filter(id => id !== user.id) : [...prev, user.id])} />
+                  </td>
+                  <td className="p-2 border">{user.fullName}</td>
+                  <td className="p-2 border">{user.email}</td>
+                  <td className="p-2 border">{user.is_minor ? "Yes" : "No"}</td>
+                  <td className="p-2 border capitalize">{user.status || "pending"}</td>
+                  <td className="p-2 border">{new Date(user.created_at).toLocaleDateString()}</td>
+                  <td className="p-2 border space-y-1">
+                    <button onClick={() => updateStatus(user.id, "approved")} className="bg-green-600 px-2 py-1 rounded w-full">Approve</button>
+                    <button onClick={() => updateStatus(user.id, "leaving_pending")} className="bg-yellow-500 px-2 py-1 rounded w-full">Leaving</button>
+                    <button onClick={() => updateStatus(user.id, "left")} className="bg-gray-500 px-2 py-1 rounded w-full">Left</button>
+                    <button onClick={() => openNotesModal(user.id)} className="bg-red-600 px-2 py-1 rounded w-full">Decline</button>
+                    <button onClick={() => updateStatus(user.id, "banned")} className="bg-black px-2 py-1 rounded w-full">Ban</button>
+                    <button onClick={() => generatePDF(user)} className="bg-blue-600 px-2 py-1 rounded w-full">PDF</button>
+                    {user.decline_notes && <div className="text-xs text-yellow-300">Note: {user.decline_notes}</div>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-        {modalData && (
-          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-            <div className="bg-gray-900 text-white p-6 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-              <h2 className="text-lg font-semibold mb-4">Edit Entry</h2>
-              {Object.entries(modalData).map(([key, value]) => {
-                if (["id", "fullName", "dob"].includes(key)) return null;
-                const handleFieldChange = (e) => {
-                  let newValue = e.target.value;
-                  if (["camera", "sponsors", "ndaAgreement", "isCreator"].includes(key)) newValue = e.target.value === "true";
-                  setModalData({ ...modalData, [key]: newValue });
-                };
-                return (
-                  <div key={key} className="mb-3">
-                    <label className="block text-sm font-semibold mb-1 capitalize">{key}</label>
-                    {typeof value === "boolean" ? (
-                      <select className="w-full p-2 border rounded bg-white text-black" value={String(value)} onChange={handleFieldChange}>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                    ) : (
-                      <input className="w-full p-2 border rounded bg-white text-black" type="text" value={value || ""} onChange={handleFieldChange} />
-                    )}
-                  </div>
-                );
-              })}
+        {notesModal.open && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-gray-900 text-white p-6 rounded-xl shadow-xl max-w-md w-full">
+              <h2 className="text-lg font-semibold mb-4">Decline Reason</h2>
+              <textarea
+                className="w-full p-2 border rounded bg-white text-black"
+                rows={4}
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+              />
               <div className="flex justify-end gap-2 mt-4">
-                <button onClick={() => setModalData(null)} className="bg-gray-500 px-4 py-2 rounded text-white">Cancel</button>
-                <button onClick={() => {
-                  Object.entries(modalData).forEach(([k, v]) => {
-                    if (!["id", "fullName", "dob"].includes(k)) updateField(modalData.id, k, v);
-                  });
-                  setModalData(null);
-                }} className="bg-purple-600 px-4 py-2 rounded text-white">Save</button>
+                <button onClick={() => setNotesModal({ open: false, userId: null })} className="bg-gray-500 px-4 py-2 rounded text-white">Cancel</button>
+                <button onClick={saveNote} className="bg-purple-600 px-4 py-2 rounded text-white">Save</button>
               </div>
             </div>
           </div>

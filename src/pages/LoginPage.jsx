@@ -12,46 +12,49 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
-    setRoleBadge("");
+    setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
+      if (signInError) {
         setError("Invalid email or password.");
         setLoading(false);
         return;
       }
 
-      const user = data.user;
-      console.log("🔐 Auth ID:", user.id);
+      const user = signInData?.user;
+      if (!user) {
+        setError("Login failed. No user found.");
+        setLoading(false);
+        return;
+      }
 
-      // 🔍 Get role from users table by matching ID
       const { data: userRecord, error: roleError } = await supabase
         .from("users")
         .select("role")
         .eq("id", user.id)
         .single();
 
-      const role = userRecord?.role || "user";
-      console.log("🎖 Logged in as:", role);
+      if (roleError || !userRecord) {
+        setError("Unable to determine user role.");
+        setLoading(false);
+        return;
+      }
+
+      const role = userRecord.role || "user";
       setRoleBadge(role);
 
-      // Redirect based on role after short badge delay
       setTimeout(() => {
-        if (role === "superadmin") navigate("/entry");
-        else if (role === "admin") navigate("/entry");
-        else navigate("/entry");
+        navigate("/entry");
       }, 1200);
-
     } catch (err) {
-      console.error("Unexpected login error:", err.message);
-      setError("Something went wrong. Please try again.");
+      console.error("Login error:", err.message || err);
+      setError("Unexpected error. Please try again.");
     }
 
     setLoading(false);
@@ -71,10 +74,10 @@ export default function LoginPage() {
           alt="Obscura Logo"
           className="h-16 mx-auto mb-3"
         />
-
         <h2 className="text-3xl font-bold mb-4 text-gray-900">Welcome Back</h2>
 
         {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
+
         {roleBadge && (
           <p className="text-sm mb-4">
             Role detected:{" "}
@@ -104,7 +107,6 @@ export default function LoginPage() {
               placeholder="you@example.com"
             />
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
@@ -116,7 +118,6 @@ export default function LoginPage() {
               placeholder="********"
             />
           </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -133,33 +134,23 @@ export default function LoginPage() {
           </a>
         </p>
 
-        {/* Social Media Icons */}
         <div className="flex justify-center space-x-6 mt-6">
-          <a href="https://youtube.com" target="_blank" rel="noreferrer" title="YouTube">
-            <img
-              src="https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//youtube.png"
-              alt="YouTube"
-              className="h-6 w-6 hover:scale-110 transition rounded-full"
-            />
-          </a>
-          <a href="https://facebook.com" target="_blank" rel="noreferrer" title="Facebook">
-            <img
-              src="https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//Facebook.png"
-              alt="Facebook"
-              className="h-6 w-6 hover:scale-110 transition rounded-full"
-            />
-          </a>
-          <a href="https://tiktok.com" target="_blank" rel="noreferrer" title="TikTok">
-            <img
-              src="https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//TikTok.png"
-              alt="TikTok"
-              className="h-6 w-6 hover:scale-110 transition rounded-full"
-            />
-          </a>
+          {[
+            { href: "https://youtube.com", src: "youtube.png", alt: "YouTube" },
+            { href: "https://facebook.com", src: "Facebook.png", alt: "Facebook" },
+            { href: "https://tiktok.com", src: "TikTok.png", alt: "TikTok" },
+          ].map(({ href, src, alt }) => (
+            <a href={href} key={alt} target="_blank" rel="noreferrer" title={alt}>
+              <img
+                src={`https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//${src}`}
+                alt={alt}
+                className="h-6 w-6 hover:scale-110 transition rounded-full"
+              />
+            </a>
+          ))}
         </div>
       </div>
 
-      {/* 🔄 Spinner Overlay */}
       {loading && (
         <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>

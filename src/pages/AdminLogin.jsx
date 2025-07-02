@@ -19,50 +19,44 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
-        setError(error.message);
+        setError("Invalid email or password.");
         return;
       }
 
       const user = data.user;
       console.log("🧠 USER DEBUG:", user);
 
-      // Try to get role from user metadata first
-      let role = user?.user_metadata?.role;
+      // Fetch role from users table
+      const { data: roleData, error: roleError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
-      // If missing, fallback to users table
-      if (!role) {
-        const { data: profile, error: profileError } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-
-        if (profileError) {
-          console.warn("Could not fetch role from users table:", profileError.message);
-        }
-
-        role = profile?.role || "user";
+      if (roleError || !roleData?.role) {
+        console.warn("⚠️ Role fetch error:", roleError?.message || "Missing role");
+        setError("Unable to fetch user role. Please contact support.");
+        return;
       }
 
+      const role = roleData.role;
       console.log("🔐 Resolved Role:", role);
 
-      // Redirect based on role
-      if (role === "superadmin") {
-        navigate("/admin-dashboard");
-      } else if (role === "admin") {
-        navigate("/admin-dashboard");
+      // ✅ Store role in localStorage for App.js to access early
+      localStorage.setItem("userRole", role);
+
+      // Navigate
+      if (role === "superadmin" || role === "admin") {
+        navigate("/admin-dashboard", { replace: true });
       } else {
-        navigate("/entry");
+        setError("Access denied. This page is for admins only.");
       }
 
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("Login error:", err.message);
       setError("Network or server error. Please try again.");
     }
   };

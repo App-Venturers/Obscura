@@ -15,7 +15,14 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
 
   const platforms = ["YouTube", "Twitch", "Facebook", "Instagram", "Kick", "Other"];
   const languages = ["Afrikaans", "English", "Other"];
-  const softwareOptions = ["OBS", "Streamlabs", "Facebook Live Studio", "YouTube Live Studio", "TikTok Live Studio", "Other"];
+  const softwareOptions = [
+    "OBS",
+    "Streamlabs",
+    "Facebook Live Studio",
+    "YouTube Live Studio",
+    "TikTok Live Studio",
+    "Other",
+  ];
 
   useEffect(() => {
     setShowOtherPlatform(formData.platforms?.includes("Other"));
@@ -49,11 +56,11 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-full">
           <div>
             <label className="block text-sm font-medium text-purple-300">Creator Name</label>
-            <input name="creatorName" value={formData.creatorName} onChange={handleChange} placeholder="Creator Name" className="recruitment-input mt-1" />
+            <input name="creator_name" value={formData.creator_name || ""} onChange={handleChange} placeholder="Creator Name" className="recruitment-input mt-1" />
           </div>
           <div>
             <label className="block text-sm font-medium text-purple-300">Timezone</label>
-            <input name="timezone" value={formData.timezone} onChange={handleChange} placeholder="e.g., SAST" className="recruitment-input mt-1" />
+            <input name="timezone" value={formData.timezone || ""} onChange={handleChange} placeholder="e.g., SAST" className="recruitment-input mt-1" />
           </div>
         </div>
 
@@ -74,23 +81,23 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
             ))}
           </div>
           {showOtherPlatform && (
-            <input name="otherPlatform" placeholder="Other Platform" value={formData.otherPlatform || ""} onChange={handleChange} className="recruitment-input mt-2" />
+            <input name="other_platform" placeholder="Other Platform" value={formData.other_platform || ""} onChange={handleChange} className="recruitment-input mt-2" />
           )}
         </div>
 
         {(formData.platforms || []).map((platform) => (
           <div key={platform} className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-full">
             <input
-              name={`url_${platform}`}
+              name={`url_${platform.toLowerCase()}`}
               placeholder={`${platform} Channel URL`}
-              value={formData[`url_${platform}`] || ""}
+              value={formData[`url_${platform.toLowerCase()}`] || ""}
               onChange={handleChange}
               className="recruitment-input"
             />
             <input
-              name={`followers_${platform}`}
+              name={`followers_${platform.toLowerCase()}`}
               placeholder={`${platform} Follower Count`}
-              value={formData[`followers_${platform}`] || ""}
+              value={formData[`followers_${platform.toLowerCase()}`] || ""}
               onChange={handleChange}
               type="number"
               className="recruitment-input"
@@ -126,7 +133,7 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
             ))}
           </div>
           {showOtherLanguage && (
-            <input name="otherLanguage" placeholder="Other Language" value={formData.otherLanguage || ""} onChange={handleChange} className="recruitment-input mt-2" />
+            <input name="other_language" placeholder="Other Language" value={formData.other_language || ""} onChange={handleChange} className="recruitment-input mt-2" />
           )}
         </div>
 
@@ -152,7 +159,7 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
             ))}
           </div>
           {showOtherSoftware && (
-            <input name="otherSoftware" placeholder="Other Software" value={formData.otherSoftware || ""} onChange={handleChange} className="recruitment-input mt-2" />
+            <input name="other_software" placeholder="Other Software" value={formData.other_software || ""} onChange={handleChange} className="recruitment-input mt-2" />
           )}
         </div>
 
@@ -168,7 +175,7 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
 
         <div>
           <label className="block text-sm font-medium text-purple-300">Starting year for content creation</label>
-          <input name="yearsCreating" type="number" value={formData.yearsCreating || ""} onChange={handleNumericInput} placeholder="e.g., 2020" className="recruitment-input mt-1" />
+          <input name="years_creating" type="number" value={formData.years_creating || ""} onChange={handleNumericInput} placeholder="e.g., 2020" className="recruitment-input mt-1" />
         </div>
 
         <div>
@@ -177,7 +184,7 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
             <span className="text-sm text-white">Are you sponsored?</span>
           </label>
           {formData.sponsors && (
-            <input name="sponsorList" placeholder="List Sponsors" value={formData.sponsorList || ""} onChange={handleChange} className="recruitment-input mt-2" />
+            <input name="sponsor_list" placeholder="List Sponsors" value={formData.sponsor_list || ""} onChange={handleChange} className="recruitment-input mt-2" />
           )}
         </div>
 
@@ -191,12 +198,12 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
 
         <div>
           <label className="block text-sm font-medium text-purple-300">Goals as a Content Creator</label>
-          <textarea name="creatorGoals" placeholder="Your goals..." value={formData.creatorGoals || ""} onChange={handleChange} className="recruitment-input mt-1" />
+          <textarea name="creator_goals" placeholder="Your goals..." value={formData.creator_goals || ""} onChange={handleChange} className="recruitment-input mt-1" />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-purple-300">Additional Notes</label>
-          <textarea name="creatorNotes" placeholder="Anything else to add..." value={formData.creatorNotes || ""} onChange={handleChange} className="recruitment-input mt-1" />
+          <textarea name="creator_notes" placeholder="Anything else to add..." value={formData.creator_notes || ""} onChange={handleChange} className="recruitment-input mt-1" />
         </div>
       </CardContent>
     </Card>

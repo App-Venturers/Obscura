@@ -26,20 +26,15 @@ export default function ExitForm() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: applicant } = await supabase
-        .from("applicants")
+      const { data: userRecord, error } = await supabase
+        .from("users")
         .select("status")
         .eq("id", user.id)
         .single();
 
-      const { data: minorApplicant } = await supabase
-        .from("minor_applicants")
-        .select("status")
-        .eq("id", user.id)
-        .single();
-
-      const status = applicant?.status || minorApplicant?.status;
-      if (status === "exit_pending") setIsAuthorized(true);
+      if (!error && userRecord?.status === "leaving_pending") {
+        setIsAuthorized(true);
+      }
     };
 
     checkStatus();
@@ -71,14 +66,16 @@ export default function ExitForm() {
       challenges: formData.challenges
     };
 
-    const { error: appError } = await supabase.from("applicants").update(updates).eq("id", user.id);
-    const { error: minorError } = await supabase.from("minor_applicants").update(updates).eq("id", user.id);
+    const { error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", user.id);
 
     setLoading(false);
 
-    if (appError && minorError) {
+    if (error) {
       alert("There was an error submitting your exit form.");
-      console.error(appError || minorError);
+      console.error("Exit form error:", error.message);
     } else {
       alert("Thank you for your feedback. You've been marked as left.");
       navigate("/");
@@ -128,7 +125,14 @@ export default function ExitForm() {
               <option value="other">Other</option>
             </select>
             {formData.reason === "other" && (
-              <input type="text" name="reasonOther" value={formData.reasonOther} onChange={handleChange} placeholder="Please specify..." className="mt-2 w-full p-2 bg-gray-700 border border-gray-600 rounded" />
+              <input
+                type="text"
+                name="reasonOther"
+                value={formData.reasonOther}
+                onChange={handleChange}
+                placeholder="Please specify..."
+                className="mt-2 w-full p-2 bg-gray-700 border border-gray-600 rounded"
+              />
             )}
           </div>
 

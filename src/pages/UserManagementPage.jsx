@@ -97,7 +97,7 @@ export default function UserManagementPage() {
     if (error) {
       console.error("Promote failed:", error.message);
     } else {
-      await fetchData(); // ✅ Refresh the UI
+      await fetchData();
     }
   };
 
@@ -106,7 +106,7 @@ export default function UserManagementPage() {
     if (error) {
       console.error("Demote failed:", error.message);
     } else {
-      await fetchData(); // ✅ Refresh the UI
+      await fetchData();
     }
   };
 
