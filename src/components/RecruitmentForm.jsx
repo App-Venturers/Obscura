@@ -178,7 +178,7 @@ export default function RecruitmentForm() {
         please have a parent or legal guardian fill out the Minor Consent Form below.
       </p>
       <div className="flex flex-col md:flex-row items-center gap-4">
-        <a href="https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhA8VeSehpag-n1HVFX5gdMupLI5UIGYiNGXNWXkqThp2G--ZFZ3hZWaUKbgBQSQsws*"
+        <a href="https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhAGEhFPqKBo1arct9V0-0mWuUIn4zNARdB9zIAOqeE0XCl9x-XKutck7_UdS7hngLs*"
           target="_blank" rel="noopener noreferrer"
           className="bg-purple-600 hover:bg-purple-700 px-6 py-3 text-white font-semibold rounded-lg shadow-lg">
           Sign the Minor Consent Form
