@@ -6,11 +6,12 @@ import EntryPage from "../components/EntryPage";
 import RecruitmentForm from "../components/RecruitmentForm";
 import MinorRecruitmentForm from "../components/MinorRecruitmentform";
 import ExitForm from "../components/ExitForm";
-import AdminLogin from "../pages/AdminLogin.jsx";
+import AdminLogin from "../pages/AdminLogin";
 import AdminDashboard from "../components/AdminDashboard";
-import UserManagementPage from "../pages/UserManagementPage.jsx";
-import LoginPage from "../pages/LoginPage.jsx";
-import SignupPage from "../pages/SignupPage.jsx";
+import UserManagementPage from "../pages/UserManagementPage";
+import LoginPage from "../pages/LoginPage";
+import SignupPage from "../pages/SignupPage";
+import AdminLayout from "../layouts/AdminLayout";
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -21,7 +22,7 @@ const AppRoutes = ({ user, role }) => {
       <Route path="/" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
 
-      {/* Authenticated User Routes */}
+      {/* Authenticated Routes */}
       <Route
         path="/entry"
         element={
@@ -55,7 +56,7 @@ const AppRoutes = ({ user, role }) => {
         }
       />
 
-      {/* Admin Routes */}
+      {/* Admin Login */}
       <Route
         path="/admin-login"
         element={
@@ -64,19 +65,27 @@ const AppRoutes = ({ user, role }) => {
           </ProtectedRoute>
         }
       />
+
+      {/* Admin Dashboard */}
       <Route
         path="/admin-dashboard"
         element={
           <ProtectedRoute user={user} userRole={role} role="admin">
-            <AdminDashboard />
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
           </ProtectedRoute>
         }
       />
+
+      {/* Superadmin User Management */}
       <Route
         path="/user-management"
         element={
           <ProtectedRoute user={user} userRole={role} role="superadmin">
-            <UserManagementPage />
+            <AdminLayout>
+              <UserManagementPage />
+            </AdminLayout>
           </ProtectedRoute>
         }
       />

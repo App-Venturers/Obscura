@@ -1,5 +1,7 @@
+// File: src/App.js
 import React, { useEffect, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { supabase } from "./supabaseClient";
 import AppRoutes from "./routes";
 
@@ -10,20 +12,17 @@ function App() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
       const sessionUser = data?.user || null;
       setUser(sessionUser);
 
       if (sessionUser) {
-        // 1. Try cached role first
         let resolvedRole = localStorage.getItem("userRole");
 
-        // 2. Fallback to metadata
         if (!resolvedRole) resolvedRole = sessionUser.user_metadata?.role;
 
-        // 3. Final fallback to users table
         if (!resolvedRole) {
-          const { data: profile, error: roleError } = await supabase
+          const { data: profile } = await supabase
             .from("users")
             .select("role")
             .eq("id", sessionUser.id)
@@ -33,7 +32,7 @@ function App() {
         }
 
         setRole(resolvedRole);
-        localStorage.setItem("userRole", resolvedRole); // ✅ Keep cache in sync
+        localStorage.setItem("userRole", resolvedRole);
       }
 
       setChecking(false);
@@ -64,6 +63,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />
       <AppRoutes user={user} role={role} />
     </BrowserRouter>
   );

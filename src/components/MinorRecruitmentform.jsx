@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import CreatorFieldsCard from "./CreatorFieldsCard";
 import { useNavigate } from "react-router-dom";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const Button = (props) => (
   <button
@@ -19,14 +21,14 @@ const Button = (props) => (
 export default function MinorRecruitmentForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullname: "",
+    fullName: "",
     email: "",
     phone: "",
-    dob: "",
-    guardianname: "",
-    guardianemail: "",
-    guardianphone: "",
-    iscreator: "no",
+    dob: null,
+    guardianName: "",
+    guardianEmail: "",
+    guardianPhone: "",
+    isCreator: "no",
     creator_name: "",
     timezone: "",
     platforms: [],
@@ -40,7 +42,7 @@ export default function MinorRecruitmentForm() {
     equipment: "",
     years_creating: "",
     sponsors: false,
-    sponsorlist: "",
+    sponsor_list: "",
     camera: false,
     collabs: "no",
     creator_goals: "",
@@ -73,24 +75,14 @@ export default function MinorRecruitmentForm() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return alert("Authentication error. Please re-login.");
 
-    const {
-      yearsCreating,
-      sponsors,
-      camera,
-      ...rest
-    } = formData;
-
     const cleanedData = {
-      ...rest,
-      years_creating: yearsCreating === "" ? null : parseInt(yearsCreating, 10),
-      sponsors: !!sponsors,
-      camera: !!camera,
+      ...formData,
+      years_creating: formData.years_creating === "" ? null : parseInt(formData.years_creating, 10),
+      sponsors: !!formData.sponsors,
+      camera: !!formData.camera,
       is_minor: true,
       status: "pending",
       nda_agreement: true,
-      guardian_name: formData.guardianname,
-      guardian_email: formData.guardianemail,
-      guardian_phone: formData.guardianphone,
     };
 
     const { error: updateError } = await supabase
@@ -161,19 +153,22 @@ export default function MinorRecruitmentForm() {
               onChange={handleChange}
               className="p-3 rounded bg-gray-800 border border-gray-700"
             />
-            <input
-              name="dob"
-              type="date"
-              required
-              value={formData.dob}
-              onChange={handleChange}
-              className="p-3 rounded bg-gray-800 border border-gray-700"
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
+              <DatePicker
+                selected={formData.dob}
+                onChange={(date) => setFormData({ ...formData, dob: date })}
+                dateFormat="yyyy-MM-dd"
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                placeholderText="Select DOB"
+                className="w-full p-3 rounded bg-gray-800 border border-gray-700 text-white"
+              />
+            </div>
           </div>
 
-          <h2 className="text-lg font-semibold text-purple-300">
-            Parent / Guardian Information
-          </h2>
+          <h2 className="text-lg font-semibold text-purple-300">Parent / Guardian Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
               name="guardianName"
@@ -205,6 +200,15 @@ export default function MinorRecruitmentForm() {
           <div className="text-yellow-300 text-sm border border-yellow-500 rounded p-3">
             Warning: If the NDA is not completed via Adobe Sign, your application may be declined.
           </div>
+
+          <iframe
+            src="https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhCg2181RCPfiGFpIaJLaS-BatNww51WnL9ot-nG0MvM1uc4x-sER1bMcVj3JTVD3Qg*"
+            width="100%"
+            height="600px"
+            frameBorder="0"
+            className="border border-gray-700 rounded-lg"
+            title="Minor NDA Document"
+          ></iframe>
 
           <div>
             <label className="block text-purple-300 font-semibold mb-1">

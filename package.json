@@ -3,16 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@coreui/icons": "^3.0.1",
+    "@coreui/icons-react": "^2.3.0",
+    "@coreui/react": "^5.7.0",
     "@supabase/supabase-js": "^2.42.4",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.11",
+    "date-fns": "^4.1.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "papaparse": "^5.5.3",
     "react": "^18.2.0",
     "react-csv": "^2.2.2",
+    "react-datepicker": "^8.4.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.5.2",
     "react-player": "^2.16.0",
     "react-router-dom": "^6.22.2",
     "react-scripts": "^5.0.1"
@@ -41,7 +47,7 @@
       "last 1 safari version"
     ]
   },
-   "devDependencies": {
+  "devDependencies": {
     "autoprefixer": "^10.4.21",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
