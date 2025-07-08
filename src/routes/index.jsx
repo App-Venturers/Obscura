@@ -12,6 +12,7 @@ import UserManagementPage from "../pages/UserManagementPage";
 import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
 import AdminLayout from "../layouts/AdminLayout";
+import UpdatePassword from "../pages/UpdatePassword";
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -21,6 +22,7 @@ const AppRoutes = ({ user, role }) => {
       {/* Public Routes */}
       <Route path="/" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/update-password" element={<UpdatePassword />} />
 
       {/* Authenticated Routes */}
       <Route

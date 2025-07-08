@@ -60,6 +60,25 @@ export default function LoginPage() {
     setLoading(false);
   };
 
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError("Please enter your email to reset your password.");
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/update-password`,
+    });
+
+    if (error) {
+      console.error("Password reset error:", error.message);
+      setError("Failed to send reset link. Try again.");
+    } else {
+      setError("");
+      alert("Password reset link sent. Check your email.");
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-cover bg-center flex items-center justify-center px-4 relative"
@@ -125,6 +144,14 @@ export default function LoginPage() {
           >
             {loading ? "Logging in..." : "Log In"}
           </button>
+
+          <button
+            type="button"
+            onClick={handleResetPassword}
+            className="text-sm text-blue-600 hover:underline mt-2 block"
+          >
+            Forgot Password?
+          </button>
         </form>
 
         <p className="mt-4 text-sm text-gray-600">
@@ -135,7 +162,7 @@ export default function LoginPage() {
         </p>
 
         <div className="flex justify-center space-x-6 mt-6">
-          {[
+          {[ 
             { href: "https://youtube.com", src: "youtube.png", alt: "YouTube" },
             { href: "https://facebook.com", src: "Facebook.png", alt: "Facebook" },
             { href: "https://tiktok.com", src: "TikTok.png", alt: "TikTok" },

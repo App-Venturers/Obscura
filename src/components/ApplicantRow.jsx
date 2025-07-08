@@ -7,17 +7,18 @@ export default function ApplicantRow({
   toggleSelect,
   updateStatus,
   openNotesModal,
+  openEditModal, // ✅ new prop
 }) {
   const generatePDF = (row) => {
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.text("Recruitment Record", 14, 20);
     doc.setFontSize(12);
-    doc.text(`Full Name: ${row.fullName}`, 14, 35);
+    doc.text(`Full Name: ${row.full_name}`, 14, 35);
     doc.text(`Status: ${row.status}`, 14, 45);
     doc.text(`Email: ${row.email || "-"}`, 14, 55);
     doc.text(`Submitted: ${new Date(row.created_at).toLocaleDateString()}`, 14, 65);
-    doc.save(`Recruitment_${row.fullName.replace(" ", "_")}.pdf`);
+    doc.save(`Recruitment_${row.full_name.replace(" ", "_")}.pdf`);
   };
 
   return (
@@ -29,7 +30,7 @@ export default function ApplicantRow({
           onChange={() => toggleSelect(user.id)}
         />
       </td>
-      <td className="p-3 border">{user.fullName}</td>
+      <td className="p-3 border">{user.full_name}</td>
       <td className="p-3 border">{user.email}</td>
       <td className="p-3 border">{user.is_minor ? "Yes" : "No"}</td>
       <td className="p-3 border capitalize">{user.status || "pending"}</td>
@@ -73,6 +74,12 @@ export default function ApplicantRow({
             className="bg-blue-600 text-white rounded px-2 py-1 text-xs"
           >
             PDF
+          </button>
+          <button
+            onClick={() => openEditModal(user)}
+            className="bg-purple-600 text-white rounded px-2 py-1 text-xs"
+          >
+            Edit
           </button>
         </div>
         {user.decline_notes && (

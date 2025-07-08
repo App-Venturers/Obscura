@@ -8,6 +8,7 @@ import jsPDF from "jspdf";
 import StatCard from "./StatCard";
 import ApplicantRow from "./ApplicantRow";
 import DeclineModal from "./DeclineModal";
+import EditApplicantModal from "./EditApplicantModal";
 import { useToast } from "../context/ToastContext";
 
 export default function AdminDashboard() {
@@ -21,7 +22,9 @@ export default function AdminDashboard() {
   const [currentUserRole, setCurrentUserRole] = useState(null);
   const [notesModal, setNotesModal] = useState({ open: false, userId: null });
   const [noteInput, setNoteInput] = useState("");
+  const [editApplicant, setEditApplicant] = useState(null);
   const [tabFilter, setTabFilter] = useState("all");
+  const [editModal, setEditModal] = useState({ open: false, data: null });
 
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
@@ -306,13 +309,14 @@ export default function AdminDashboard() {
           <tbody>
             {paginated.map((user) => (
               <ApplicantRow
-                key={user.id}
-                user={user}
-                isSelected={selectedRows.includes(user.id)}
-                toggleSelect={toggleSelect}
-                updateStatus={updateStatus}
-                openNotesModal={setNotesModal}
-              />
+  key={user.id}
+  user={user}
+  isSelected={selectedRows.includes(user.id)}
+  toggleSelect={toggleSelect}
+  updateStatus={updateStatus}
+  openNotesModal={setNotesModal}
+  openEditModal={(user) => setEditModal({ open: true, data: user })}
+/>
             ))}
           </tbody>
         </table>
@@ -345,6 +349,31 @@ export default function AdminDashboard() {
         noteInput={noteInput}
         setNoteInput={setNoteInput}
       />
+
+      {editApplicant && (
+        <EditApplicantModal
+  visible={editModal.open}
+  userData={editModal.data}
+  onClose={() => setEditModal({ open: false, data: null })}
+  onSave={async (updatedData) => {
+    const { id, ...fieldsToUpdate } = updatedData;
+    const { error } = await supabase
+      .from("users")
+      .update(fieldsToUpdate)
+      .eq("id", id);
+
+    if (error) {
+      addToast("Error saving user data");
+      console.error(error.message);
+    } else {
+      addToast("User updated successfully");
+      setEditModal({ open: false, data: null });
+      fetchData(); // Refresh the table
+    }
+  }}
+/>
+
+      )}
     </div>
   );
 }
