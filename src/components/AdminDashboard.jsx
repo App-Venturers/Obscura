@@ -26,7 +26,7 @@ export default function AdminDashboard() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const toast = useToast();
+  const { addToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
       .update({ status: newStatus, decline_notes: notes })
       .eq("id", id);
     if (!error) {
-      toast.addToast(`User updated to "${newStatus}"`);
+      addToast(`User updated to "${newStatus}"`);
       fetchData();
     }
   };
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
       .update({ status })
       .in("id", selectedRows);
     if (!error) {
-      toast.addToast(`Updated ${selectedRows.length} users to ${status}`);
+      addToast(`Updated ${selectedRows.length} users to ${status}`);
       setSelectedRows([]);
       fetchData();
     }
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
         const cleaned = data.map((row) => ({ ...row, is_minor: false }));
         const { error } = await supabase.from("users").insert(cleaned);
         if (!error) {
-          toast.addToast("CSV Imported");
+          addToast("CSV Imported");
           fetchData();
         }
       },
@@ -327,12 +327,12 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <DeclineModal
+       <DeclineModal
         visible={notesModal.open}
         onClose={() => setNotesModal({ open: false, userId: null })}
         onSave={async () => {
           await updateStatus(notesModal.userId, "declined", noteInput);
-          toast.addToast("User declined");
+          addToast("User declined");
           setNotesModal({ open: false, userId: null });
         }}
         noteInput={noteInput}
