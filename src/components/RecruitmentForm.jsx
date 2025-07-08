@@ -351,12 +351,12 @@ export default function RecruitmentForm() {
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">4. Content Creation</h2>
             <SelectField
-              name="isCreator"
-              value={formData.isCreator ? "yes" : "no"}
+              name="is_creator"
+              value={formData.is_creator ? "yes" : "no"}
               onChange={handleChange}
               options={["no", "yes"]}
             />
-            {formData.isCreator && (
+            {formData.is_creator && (
               <CreatorFieldsCard formData={formData} handleChange={handleChange} />
             )}
           </section>
