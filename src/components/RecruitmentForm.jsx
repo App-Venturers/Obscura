@@ -240,7 +240,7 @@ export default function RecruitmentForm() {
             <h2 className="text-2xl font-bold text-white mb-4">1. Personal Details</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <InputField
-                name="fullName"
+                name="full_name"
                 label="Full Name"
                 value={formData.fullName}
                 onChange={handleChange}
