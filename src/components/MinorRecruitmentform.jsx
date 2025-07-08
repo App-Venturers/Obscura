@@ -1,4 +1,3 @@
-// MinorRecruitmentForm.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import CreatorFieldsCard from "./CreatorFieldsCard";
@@ -21,14 +20,14 @@ const Button = (props) => (
 export default function MinorRecruitmentForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: "",
+    full_name: "",
     email: "",
     phone: "",
     dob: null,
-    guardianName: "",
-    guardianEmail: "",
-    guardianPhone: "",
-    isCreator: "no",
+    guardian_name: "",
+    guardian_email: "",
+    guardian_phone: "",
+    is_creator: "no",
     creator_name: "",
     timezone: "",
     platforms: [],
@@ -37,8 +36,10 @@ export default function MinorRecruitmentForm() {
     content_type: "",
     games: "",
     languages: [],
+    other_language: "",
     internet: "",
     software: [],
+    other_software: "",
     equipment: "",
     years_creating: "",
     sponsors: false,
@@ -59,10 +60,9 @@ export default function MinorRecruitmentForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-    const updatedValue =
-      type === "checkbox" ? checked : type === "file" ? files[0] : value;
+    const updatedValue = type === "checkbox" ? checked : type === "file" ? files[0] : value;
 
-    if (name === "isCreator") setShowCreatorFields(value === "yes");
+    if (name === "is_creator") setShowCreatorFields(value === "yes");
 
     setFormData((prev) => ({
       ...prev,
@@ -70,20 +70,29 @@ export default function MinorRecruitmentForm() {
     }));
   };
 
+  const sanitizePayload = (obj) =>
+    Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return alert("Authentication error. Please re-login.");
 
-    const cleanedData = {
+    const rawData = {
       ...formData,
-      years_creating: formData.years_creating === "" ? null : parseInt(formData.years_creating, 10),
+      is_creator: formData.is_creator === "yes",
+      years_creating: formData.years_creating ? parseInt(formData.years_creating, 10) : null,
       sponsors: !!formData.sponsors,
       camera: !!formData.camera,
       is_minor: true,
       status: "pending",
       nda_agreement: true,
+      dob: formData.dob ? formData.dob.toISOString() : null,
     };
+
+    const cleanedData = sanitizePayload(rawData);
+    console.log("Submitting cleaned minor data:", cleanedData);
 
     const { error: updateError } = await supabase
       .from("users")
@@ -129,10 +138,10 @@ export default function MinorRecruitmentForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
-              name="fullName"
+              name="full_name"
               placeholder="Full Name"
               required
-              value={formData.fullName}
+              value={formData.full_name}
               onChange={handleChange}
               className="p-3 rounded bg-gray-800 border border-gray-700"
             />
@@ -171,27 +180,27 @@ export default function MinorRecruitmentForm() {
           <h2 className="text-lg font-semibold text-purple-300">Parent / Guardian Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
-              name="guardianName"
+              name="guardian_name"
               placeholder="Guardian Full Name"
               required
-              value={formData.guardianName}
+              value={formData.guardian_name}
               onChange={handleChange}
               className="p-3 rounded bg-gray-800 border border-gray-700"
             />
             <input
-              name="guardianEmail"
+              name="guardian_email"
               type="email"
               placeholder="Guardian Email"
               required
-              value={formData.guardianEmail}
+              value={formData.guardian_email}
               onChange={handleChange}
               className="p-3 rounded bg-gray-800 border border-gray-700"
             />
             <input
-              name="guardianPhone"
+              name="guardian_phone"
               placeholder="Guardian Phone"
               required
-              value={formData.guardianPhone}
+              value={formData.guardian_phone}
               onChange={handleChange}
               className="p-3 rounded bg-gray-800 border border-gray-700"
             />
@@ -215,8 +224,8 @@ export default function MinorRecruitmentForm() {
               Are you a content creator?
             </label>
             <select
-              name="isCreator"
-              value={formData.isCreator}
+              name="is_creator"
+              value={formData.is_creator}
               onChange={handleChange}
               className="p-3 rounded bg-gray-800 border border-gray-700"
             >

@@ -1,4 +1,3 @@
-// File: src/components/RecruitmentForm.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import CreatorFieldsCard from "./CreatorFieldsCard";
@@ -62,12 +61,11 @@ export default function RecruitmentForm() {
   const navigate = useNavigate();
   const assets = {
     logo: "https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//ObscuraLogo.png",
-    background:
-      "https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//wallpaperflare.com_wallpaper%20(57).jpg",
+    background: "https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//wallpaperflare.com_wallpaper%20(57).jpg",
   };
 
   const [formData, setFormData] = useState({
-    fullName: "",
+    full_name: "",
     email: "",
     phone: "",
     gamertag: "",
@@ -112,18 +110,23 @@ export default function RecruitmentForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-    let updatedValue =
+    const updatedValue =
       type === "checkbox" ? checked : type === "file" ? files[0] : value;
-    if (name === "isCreator") updatedValue = value === "yes";
+
     setFormData((prev) => ({ ...prev, [name]: updatedValue }));
   };
 
+  const sanitizePayload = (obj) =>
+    Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.email || !formData.phone)
+
+    if (!formData.full_name || !formData.email || !formData.phone)
       return alert("Full Name, Email, and Phone are required.");
     if (!formData.nda_agreement)
       return alert("You must complete the NDA before submitting.");
+
     const age = new Date().getFullYear() - formData.dob?.getFullYear();
     if (age < 18) return setUnder18(true);
 
@@ -136,39 +139,32 @@ export default function RecruitmentForm() {
     let photoUrl = "";
     if (formData.photo) {
       const fileExt = formData.photo.name.split(".").pop();
-      const fileName = `${formData.fullName.replace(/\s+/g, "_")}_${Date.now()}.${fileExt}`;
+      const fileName = `${formData.full_name.replace(/\s+/g, "_")}_${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("photos")
         .upload(fileName, formData.photo);
       if (uploadError) return alert("Failed to upload photo: " + uploadError.message);
+
       const { data: publicUrlData } = supabase.storage
         .from("photos")
         .getPublicUrl(fileName);
       photoUrl = publicUrlData?.publicUrl || "";
     }
 
-    const {
-      photo,
-      years_creating,
-      sponsors,
-      camera,
-      nda_agreement,
-      ...rest
-    } = formData;
-
-    const cleanedData = {
-      ...rest,
-      years_creating: formData.years_creating
-        ? parseInt(formData.years_creating, 10)
-        : null,
+    const rawPayload = {
+      ...formData,
+      years_creating: formData.years_creating ? parseInt(formData.years_creating, 10) : null,
       sponsors: !!formData.sponsors,
       camera: !!formData.camera,
-      nda_agreement: formData.nda_agreement,
-      photo_url: photoUrl,
-      status: "pending",
-      is_minor: false,
+      nda_agreement: !!formData.nda_agreement,
+      is_creator: !!formData.is_creator,
       dob: formData.dob ? formData.dob.toISOString() : null,
+      is_minor: false,
+      status: "pending",
+      photo_url: photoUrl,
     };
+
+    const cleanedData = sanitizePayload(rawPayload);
 
     const { error: updateError } = await supabase
       .from("users")

@@ -31,7 +31,10 @@ export default function RecruitmentSummary({ data }) {
     { label: "Followers Twitch", value: data.followers_twitch },
     { label: "Followers Instagram", value: data.followers_instagram },
     { label: "Followers TikTok", value: data.followers_tiktok },
-    { label: "Created At", value: new Date(data.created_at).toLocaleDateString() },
+    { label: "Followers Facebook", value: data.followers_facebook },
+    { label: "Followers Kick", value: data.followers_kick },
+    { label: "Followers Other", value: data.followers_other },
+    { label: "Created At", value: data.created_at ? new Date(data.created_at).toLocaleDateString() : "-" },
     { label: "Status", value: data.status },
     { label: "Admin Notes", value: data.admin_notes },
   ];
@@ -43,7 +46,9 @@ export default function RecruitmentSummary({ data }) {
         {fields.map(({ label, value }) => (
           <div key={label} className="flex flex-col">
             <span className="text-sm font-semibold text-gray-600">{label}</span>
-            <span className="text-base font-medium break-words whitespace-pre-wrap">{value || "-"}</span>
+            <span className="text-base font-medium break-words whitespace-pre-wrap">
+              {value || "-"}
+            </span>
           </div>
         ))}
       </div>

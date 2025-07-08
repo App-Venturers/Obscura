@@ -6,8 +6,8 @@ export default function ExitForm() {
   const [formData, setFormData] = useState({
     name: "",
     ign: "",
-    joinDate: "",
-    exitDate: new Date().toISOString().slice(0, 10),
+    join_date: "",
+    exit_requested_at: new Date().toISOString().slice(0, 10),
     reason: "",
     reasonOther: "",
     positives: "",
@@ -17,6 +17,7 @@ export default function ExitForm() {
     contractConfirm: false,
     accuracyConfirm: false
   });
+
   const [loading, setLoading] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const navigate = useNavigate();
@@ -52,8 +53,11 @@ export default function ExitForm() {
     e.preventDefault();
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Session expired. Please log in again.");
+      return navigate("/login");
+    }
 
     const updates = {
       status: "left",
@@ -63,7 +67,9 @@ export default function ExitForm() {
       contract_confirm: formData.contractConfirm,
       accuracy_confirm: formData.accuracyConfirm,
       positive_experience: formData.positives,
-      challenges: formData.challenges
+      challenges: formData.challenges,
+      join_date: formData.join_date || null,
+      exit_requested_at: formData.exit_requested_at || null
     };
 
     const { error } = await supabase
@@ -106,11 +112,11 @@ export default function ExitForm() {
             </div>
             <div>
               <label className="block mb-1">Date of Joining</label>
-              <input type="date" name="joinDate" value={formData.joinDate} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" required />
+              <input type="date" name="join_date" value={formData.join_date} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" required />
             </div>
             <div>
               <label className="block mb-1">Date of Exit Request</label>
-              <input type="date" name="exitDate" value={formData.exitDate} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" required />
+              <input type="date" name="exit_requested_at" value={formData.exit_requested_at} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" required />
             </div>
           </div>
 
