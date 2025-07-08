@@ -1,4 +1,3 @@
-// File: src/components/AdminDashboard.jsx
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -48,7 +47,8 @@ export default function AdminDashboard() {
     const { count: total } = await supabase
       .from("users")
       .select("*", { count: "exact", head: true })
-      .or("fullName.not.is.null,dob.not.is.null");
+      .not("full_name", "is", null)
+      .not("dob", "is", null);
 
     const statuses = ["approved", "declined", "banned", "leaving_pending", "left"];
     const counts = await Promise.all(
@@ -56,8 +56,9 @@ export default function AdminDashboard() {
         const { count } = await supabase
           .from("users")
           .select("*", { count: "exact", head: true })
-          .or("fullName.not.is.null,dob.not.is.null")
-          .eq("status", status);
+          .eq("status", status)
+          .not("full_name", "is", null)
+          .not("dob", "is", null);
         return count || 0;
       })
     );
@@ -76,14 +77,20 @@ export default function AdminDashboard() {
     let query = supabase
       .from("users")
       .select("*")
-      .or("fullName.not.is.null,dob.not.is.null")
+      .not("full_name", "is", null)
+      .not("dob", "is", null)
       .order("created_at", { ascending: true });
 
-    if (statusFilter !== "all") query = query.eq("status", statusFilter);
+    if (statusFilter !== "all") {
+      query = query.eq("status", statusFilter);
+    }
 
     const { data, error } = await query;
-    if (error) return console.error("Fetch error:", error);
-    setData(data || []);
+    if (error) {
+      console.error("Fetch error:", error.message);
+    } else {
+      setData(data || []);
+    }
   }, [statusFilter]);
 
   useEffect(() => {
@@ -175,7 +182,7 @@ export default function AdminDashboard() {
 
     let y = 30;
     filteredData.forEach((user, idx) => {
-      doc.text(`${idx + 1}. ${user.fullName} - ${user.status}`, 14, y);
+      doc.text(`${idx + 1}. ${user.full_name} - ${user.status}`, 14, y);
       y += 10;
     });
 
@@ -276,7 +283,7 @@ export default function AdminDashboard() {
         <table className="w-full text-sm border-collapse">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              {["", "fullName", "email", "is_minor", "status", "created_at", "actions"].map(
+              {["", "full_name", "email", "is_minor", "status", "created_at", "actions"].map(
                 (key, i) => (
                   <th
                     key={i}
@@ -327,7 +334,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-       <DeclineModal
+      <DeclineModal
         visible={notesModal.open}
         onClose={() => setNotesModal({ open: false, userId: null })}
         onSave={async () => {
