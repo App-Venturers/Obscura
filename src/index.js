@@ -1,12 +1,14 @@
+// File: src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css"; // Tailwind & custom styles
 import App from "./App";
+import { ToastProvider } from "./context/ToastContext";
+import "./index.css"; // or wherever your Tailwind and global styles are
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-
-root.render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </React.StrictMode>
 );
