@@ -11,11 +11,14 @@ export default function UpdatePassword() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ 1. Handle session exchange (Supabase magic link)
+  // ✅ Handle session exchange (magic link / token)
   useEffect(() => {
     const exchangeSession = async () => {
       const hash = window.location.hash;
-      if (hash.includes("access_token")) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasAccessToken = hash.includes("access_token") || urlParams.get("code");
+
+      if (hasAccessToken) {
         try {
           await supabase.auth.exchangeCodeForSession();
         } catch (err) {
@@ -28,11 +31,16 @@ export default function UpdatePassword() {
     exchangeSession();
   }, []);
 
-  // ✅ 2. Form submission
+  // ✅ Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setMessage("");
+
+    if (!password || password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
 
     if (password !== confirm) {
       setError("Passwords do not match.");
@@ -40,14 +48,17 @@ export default function UpdatePassword() {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error: updateError } = await supabase.auth.updateUser({ password });
     setLoading(false);
 
-    if (error) {
-      setError(error.message || "Something went wrong. Try again.");
+    if (updateError) {
+      setError(updateError.message || "Something went wrong. Try again.");
     } else {
       setMessage("✅ Password updated! Redirecting to login...");
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => {
+        window.history.replaceState(null, "", window.location.pathname); // Clear token
+        navigate("/login");
+      }, 2000);
     }
   };
 
@@ -73,6 +84,7 @@ export default function UpdatePassword() {
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-black dark:text-white"
               required
               minLength={6}
+              placeholder="At least 6 characters"
             />
           </div>
 
@@ -87,13 +99,14 @@ export default function UpdatePassword() {
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-black dark:text-white"
               required
               minLength={6}
+              placeholder="Re-type your password"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
           >
             {loading ? "Updating..." : "Update Password"}
           </button>

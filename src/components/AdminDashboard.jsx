@@ -1,3 +1,4 @@
+// File: src/components/AdminDashboard.jsx
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -5,7 +6,6 @@ import Papa from "papaparse";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 
-import StatCard from "./StatCard";
 import ApplicantRow from "./ApplicantRow";
 import DeclineModal from "./DeclineModal";
 import EditApplicantModal from "./EditApplicantModal";
@@ -22,59 +22,14 @@ export default function AdminDashboard() {
   const [currentUserRole, setCurrentUserRole] = useState(null);
   const [notesModal, setNotesModal] = useState({ open: false, userId: null });
   const [noteInput, setNoteInput] = useState("");
-  const [editApplicant, setEditApplicant] = useState(null);
-  const [tabFilter, setTabFilter] = useState("all");
   const [editModal, setEditModal] = useState({ open: false, data: null });
-
+  const [tabFilter, setTabFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+
   const { addToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const [overviewCounts, setOverviewCounts] = useState({
-    total: 0,
-    approved: 0,
-    declined: 0,
-    banned: 0,
-    leaving_pending: 0,
-    left: 0,
-  });
-
-  useEffect(() => {
-    const urlTab = new URLSearchParams(location.search).get("tab");
-    if (urlTab) setTabFilter(urlTab);
-  }, [location.search]);
-
-  const fetchOverviewStats = async () => {
-    const { count: total } = await supabase
-      .from("users")
-      .select("*", { count: "exact", head: true })
-      .not("full_name", "is", null)
-      .not("dob", "is", null);
-
-    const statuses = ["approved", "declined", "banned", "leaving_pending", "left"];
-    const counts = await Promise.all(
-      statuses.map(async (status) => {
-        const { count } = await supabase
-          .from("users")
-          .select("*", { count: "exact", head: true })
-          .eq("status", status)
-          .not("full_name", "is", null)
-          .not("dob", "is", null);
-        return count || 0;
-      })
-    );
-
-    setOverviewCounts({
-      total: total || 0,
-      approved: counts[0],
-      declined: counts[1],
-      banned: counts[2],
-      leaving_pending: counts[3],
-      left: counts[4],
-    });
-  };
 
   const fetchData = useCallback(async () => {
     let query = supabase
@@ -97,6 +52,11 @@ export default function AdminDashboard() {
   }, [statusFilter]);
 
   useEffect(() => {
+    const urlTab = new URLSearchParams(location.search).get("tab");
+    if (urlTab) setTabFilter(urlTab);
+  }, [location.search]);
+
+  useEffect(() => {
     const init = async () => {
       const {
         data: { user },
@@ -109,7 +69,6 @@ export default function AdminDashboard() {
           .single();
         setCurrentUserRole(roleData?.role);
       }
-      fetchOverviewStats();
       fetchData();
     };
     init();
@@ -216,7 +175,7 @@ export default function AdminDashboard() {
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   return (
-    <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-white">
+    <>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         <div className="flex gap-2">
@@ -309,14 +268,17 @@ export default function AdminDashboard() {
           <tbody>
             {paginated.map((user) => (
               <ApplicantRow
-  key={user.id}
-  user={user}
-  isSelected={selectedRows.includes(user.id)}
-  toggleSelect={toggleSelect}
-  updateStatus={updateStatus}
-  openNotesModal={setNotesModal}
-  openEditModal={(user) => setEditModal({ open: true, data: user })}
-/>
+                key={user.id}
+                user={user}
+                isSelected={selectedRows.includes(user.id)}
+                toggleSelect={toggleSelect}
+                updateStatus={updateStatus}
+                openNotesModal={setNotesModal}
+                openEditModal={(user) => {
+                  console.log("Opening edit modal for user:", user);
+                  setEditModal({ open: true, data: user });
+                }}
+              />
             ))}
           </tbody>
         </table>
@@ -350,30 +312,15 @@ export default function AdminDashboard() {
         setNoteInput={setNoteInput}
       />
 
-      {editApplicant && (
-        <EditApplicantModal
-  visible={editModal.open}
-  userData={editModal.data}
+      <EditApplicantModal
+  isOpen={!!editModal.open}
+  applicantData={editModal.data}
   onClose={() => setEditModal({ open: false, data: null })}
-  onSave={async (updatedData) => {
-    const { id, ...fieldsToUpdate } = updatedData;
-    const { error } = await supabase
-      .from("users")
-      .update(fieldsToUpdate)
-      .eq("id", id);
-
-    if (error) {
-      addToast("Error saving user data");
-      console.error(error.message);
-    } else {
-      addToast("User updated successfully");
-      setEditModal({ open: false, data: null });
-      fetchData(); // Refresh the table
-    }
+  onSave={() => {
+    fetchData();
+    setEditModal({ open: false, data: null });
   }}
 />
-
-      )}
-    </div>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
@@ -9,6 +9,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [roleBadge, setRoleBadge] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let isMounted = true;
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -40,20 +47,20 @@ export default function LoginPage() {
         .eq("id", user.id)
         .single();
 
-      if (roleError || !userRecord) {
+      if (roleError || !userRecord?.role) {
         setError("Unable to determine user role.");
         setLoading(false);
         return;
       }
 
-      const role = userRecord.role || "user";
+      const role = userRecord.role;
       setRoleBadge(role);
 
       setTimeout(() => {
         navigate("/entry");
-      }, 1200);
+      }, 1000);
     } catch (err) {
-      console.error("Login error:", err.message || err);
+      console.error("Login error:", err.message);
       setError("Unexpected error. Please try again.");
     }
 
@@ -74,8 +81,7 @@ export default function LoginPage() {
       console.error("Password reset error:", error.message);
       setError("Failed to send reset link. Try again.");
     } else {
-      setError("");
-      alert("Password reset link sent. Check your email.");
+      alert("✅ Password reset link sent. Check your email.");
     }
   };
 
@@ -93,6 +99,7 @@ export default function LoginPage() {
           alt="Obscura Logo"
           className="h-16 mx-auto mb-3"
         />
+
         <h2 className="text-3xl font-bold mb-4 text-gray-900">Welcome Back</h2>
 
         {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
@@ -114,33 +121,37 @@ export default function LoginPage() {
           </p>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4 text-left">
+        <form onSubmit={handleLogin} className="space-y-4 text-left" aria-label="Login form">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
               placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
               type="password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
               placeholder="********"
+              autoComplete="current-password"
             />
           </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
           >
             {loading ? "Logging in..." : "Log In"}
           </button>
@@ -162,7 +173,7 @@ export default function LoginPage() {
         </p>
 
         <div className="flex justify-center space-x-6 mt-6">
-          {[ 
+          {[
             { href: "https://youtube.com", src: "youtube.png", alt: "YouTube" },
             { href: "https://facebook.com", src: "Facebook.png", alt: "Facebook" },
             { href: "https://tiktok.com", src: "TikTok.png", alt: "TikTok" },

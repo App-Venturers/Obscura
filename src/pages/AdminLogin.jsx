@@ -50,7 +50,7 @@ export default function AdminLogin() {
 
       // Navigate
       if (role === "superadmin" || role === "admin") {
-        navigate("/admin-dashboard", { replace: true });
+        navigate("/admin-overview", { replace: true });
       } else {
         setError("Access denied. This page is for admins only.");
       }

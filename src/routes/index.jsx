@@ -13,7 +13,8 @@ import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
 import AdminLayout from "../layouts/AdminLayout";
 import UpdatePassword from "../pages/UpdatePassword";
-
+import AdminOverview from "../pages/AdminOverview";
+import StreamerDashboard from "../pages/StreamerDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 
 const AppRoutes = ({ user, role }) => {
@@ -68,6 +69,18 @@ const AppRoutes = ({ user, role }) => {
         }
       />
 
+      {/* Admin Overview */}
+      <Route
+        path="/admin-overview"
+        element={
+          <ProtectedRoute user={user} userRole={role} role="admin">
+            <AdminLayout>
+              <AdminOverview />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Admin Dashboard */}
       <Route
         path="/admin-dashboard"
@@ -75,6 +88,18 @@ const AppRoutes = ({ user, role }) => {
           <ProtectedRoute user={user} userRole={role} role="admin">
             <AdminLayout>
               <AdminDashboard />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Streamer Dashboard */}
+      <Route
+        path="/streamers"
+        element={
+          <ProtectedRoute user={user} userRole={role} role="admin">
+            <AdminLayout>
+              <StreamerDashboard />
             </AdminLayout>
           </ProtectedRoute>
         }

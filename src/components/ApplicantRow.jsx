@@ -76,11 +76,11 @@ export default function ApplicantRow({
             PDF
           </button>
           <button
-            onClick={() => openEditModal(user)}
-            className="bg-purple-600 text-white rounded px-2 py-1 text-xs"
-          >
-            Edit
-          </button>
+  onClick={() => openEditModal(user)}
+  className="bg-purple-600 text-white rounded px-2 py-1 text-xs"
+>
+  Edit
+</button>
         </div>
         {user.decline_notes && (
           <div className="text-xs text-yellow-600 mt-1">

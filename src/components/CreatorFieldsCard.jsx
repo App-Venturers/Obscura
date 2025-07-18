@@ -15,7 +15,7 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
   const [showOtherLanguage, setShowOtherLanguage] = useState(false);
   const [showOtherSoftware, setShowOtherSoftware] = useState(false);
 
-  const platforms = ["YouTube", "Twitch", "Facebook", "Instagram", "Kick", "Other"];
+  const platforms = ["YouTube", "Twitch", "Facebook", "Instagram", "Kick", "TikTok" , "Other"];
   const languages = ["Afrikaans", "English", "Other"];
   const softwareOptions = [
     "OBS",
