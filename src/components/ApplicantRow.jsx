@@ -8,7 +8,7 @@ export default function ApplicantRow({
   openNotesModal,
   openEditModal,
 }) {
-  const generatePDF = async (row) => {
+  const generatePDF = (row) => {
     const doc = new jsPDF();
     const margin = 14;
     let y = 20;
@@ -17,6 +17,36 @@ export default function ApplicantRow({
       "https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//ObscuraLogo.png";
     const logoImg = new Image();
     logoImg.crossOrigin = "anonymous";
+
+    const addField = (label, value) => {
+      const text = `${label}: ${value ?? "-"}`;
+      const lines = doc.splitTextToSize(text, 180);
+      doc.text(lines, margin, y);
+      y += lines.length * 8;
+      if (y > 250) {
+        drawFooter();
+        doc.addPage();
+        y = 20;
+      }
+    };
+
+    const drawFooter = () => {
+      const pageHeight = doc.internal.pageSize.height;
+      const currentDate = new Date();
+      const formatted = currentDate.toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const adminEmail = localStorage.getItem("userEmail") || "Unknown";
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generated: ${formatted}`, 14, pageHeight - 12);
+      doc.text(`Exporter: ${adminEmail}`, 14, pageHeight - 6);
+    };
 
     logoImg.onload = () => {
       doc.addImage(logoImg, "PNG", 80, y, 50, 20);
@@ -27,17 +57,6 @@ export default function ApplicantRow({
       y += 15;
 
       doc.setFontSize(12);
-      const addField = (label, value) => {
-        const text = `${label}: ${value ?? "-"}`;
-        const lines = doc.splitTextToSize(text, 180);
-        doc.text(lines, margin, y);
-        y += lines.length * 8;
-        if (y > 250) {
-          drawFooter();
-          doc.addPage();
-          y = 20;
-        }
-      };
 
       // Personal Info
       addField("Full Name", row.full_name);
@@ -75,29 +94,8 @@ export default function ApplicantRow({
       // Admin
       addField("Decline Notes", row.decline_notes);
 
-      // Draw final footer
       drawFooter();
-
       doc.save(`Recruitment_${row.full_name?.replace(/\s+/g, "_") || "record"}.pdf`);
-    };
-
-    // Footer: current date + admin email
-    const drawFooter = () => {
-      const pageHeight = doc.internal.pageSize.height;
-      const currentDate = new Date();
-      const formatted = currentDate.toLocaleString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const adminEmail = localStorage.getItem("userEmail") || "Unknown";
-
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(`Generated: ${formatted}`, 14, pageHeight - 12);
-      doc.text(`Exporter: ${adminEmail}`, 14, pageHeight - 6);
     };
 
     logoImg.src = logoUrl;

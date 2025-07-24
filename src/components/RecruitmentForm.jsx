@@ -172,8 +172,8 @@ export default function RecruitmentForm() {
       .eq("id", user.id);
 
     if (updateError) {
-      console.error("Recruitment submission error:", updateError.message);
-      return alert("Submission failed. Please try again.");
+      alert("Submission failed. Please try again.");
+      return;
     }
 
     alert("Application submitted successfully!");

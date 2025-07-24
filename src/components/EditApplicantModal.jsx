@@ -1,5 +1,3 @@
-// Final: EditApplicantModal.jsx with full CreatorFieldsCard + RecruitmentForm fields + selection fields shown as select dropdowns
-
 import { useEffect, useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { supabase } from "../supabaseClient";
@@ -21,7 +19,7 @@ export default function EditApplicantModal({ isOpen, onClose, applicantData = {}
     "Overwatch 2",
     "GTA/ RP",
     "Motorsports",
-    "All of The Above"
+    "All of The Above",
   ];
 
   const genderOptions = ["Male", "Female", "Other"];
@@ -107,6 +105,7 @@ export default function EditApplicantModal({ isOpen, onClose, applicantData = {}
                 value={formData.email || ""}
                 onChange={handleChange}
                 className="recruitment-input"
+                autoFocus
               />
             </div>
             <div>

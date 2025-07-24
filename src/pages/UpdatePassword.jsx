@@ -1,4 +1,3 @@
-// File: src/pages/UpdatePassword.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -11,7 +10,6 @@ export default function UpdatePassword() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ Handle session exchange (magic link / token)
   useEffect(() => {
     const exchangeSession = async () => {
       const hash = window.location.hash;
@@ -31,7 +29,6 @@ export default function UpdatePassword() {
     exchangeSession();
   }, []);
 
-  // ✅ Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -56,25 +53,36 @@ export default function UpdatePassword() {
     } else {
       setMessage("✅ Password updated! Redirecting to login...");
       setTimeout(() => {
-        window.history.replaceState(null, "", window.location.pathname); // Clear token
+        window.history.replaceState(null, "", window.location.pathname);
         navigate("/login");
       }, 2000);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold text-center mb-4 text-gray-800 dark:text-white">
+    <div
+      className="min-h-screen bg-cover bg-center flex items-center justify-center px-4 relative"
+      style={{
+        backgroundImage:
+          "url('https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets/wallpaperflare.com_wallpaper%20(57).jpg')",
+      }}
+    >
+      <div className="w-full max-w-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-2xl text-center relative z-10">
+        <img
+          src="https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets/ObscuraLogo.png"
+          alt="Obscura Logo"
+          className="h-16 mx-auto mb-4 animate-bounce"
+        />
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
           Reset Your Password
         </h2>
 
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
         {message && <p className="text-green-500 text-sm mb-3">{message}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
           <div>
-            <label className="block text-sm text-gray-700 dark:text-gray-200 mb-1">
+            <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
               New Password
             </label>
             <input
@@ -89,7 +97,7 @@ export default function UpdatePassword() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-700 dark:text-gray-200 mb-1">
+            <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
               Confirm Password
             </label>
             <input
@@ -106,12 +114,18 @@ export default function UpdatePassword() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-2 rounded-lg font-semibold transition"
           >
             {loading ? "Updating..." : "Update Password"}
           </button>
         </form>
       </div>
+
+      {loading && (
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+        </div>
+      )}
     </div>
   );
 }

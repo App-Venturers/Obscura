@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [sortAsc, setSortAsc] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
   const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [notesModal, setNotesModal] = useState({ open: false, userId: null });
   const [noteInput, setNoteInput] = useState("");
   const [editModal, setEditModal] = useState({ open: false, data: null });
@@ -44,11 +45,7 @@ export default function AdminDashboard() {
     }
 
     const { data, error } = await query;
-    if (error) {
-      console.error("Fetch error:", error.message);
-    } else {
-      setData(data || []);
-    }
+    if (!error) setData(data || []);
   }, [statusFilter]);
 
   useEffect(() => {
@@ -58,21 +55,31 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const init = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data: roleData } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-        setCurrentUserRole(roleData?.role);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        navigate("/entry"); // Not logged in
+        return;
       }
+
+      const { data: roleData, error: roleError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (roleError || !roleData?.role || !["admin", "superadmin"].includes(roleData.role)) {
+        navigate("/entry"); // Not authorized
+        return;
+      }
+
+      setCurrentUserRole(roleData.role);
+      setCurrentUserEmail(user.email);
       fetchData();
     };
+
     init();
-  }, [fetchData]);
+  }, [fetchData, navigate]);
 
   useEffect(() => {
     let result = [...data];
@@ -141,13 +148,11 @@ export default function AdminDashboard() {
     const doc = new jsPDF();
     doc.setFontSize(12);
     doc.text("Applicant Export", 14, 20);
-
     let y = 30;
     filteredData.forEach((user, idx) => {
       doc.text(`${idx + 1}. ${user.full_name} - ${user.status}`, 14, y);
       y += 10;
     });
-
     doc.save("Applicants.pdf");
   };
 
@@ -177,7 +182,14 @@ export default function AdminDashboard() {
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          {currentUserEmail && (
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Logged in as: <span className="font-semibold">{currentUserEmail}</span>
+            </p>
+          )}
+        </div>
         <div className="flex gap-2">
           <CSVLink
             data={filteredData}
@@ -275,7 +287,6 @@ export default function AdminDashboard() {
                 updateStatus={updateStatus}
                 openNotesModal={setNotesModal}
                 openEditModal={(user) => {
-                  console.log("Opening edit modal for user:", user);
                   setEditModal({ open: true, data: user });
                 }}
               />
@@ -313,14 +324,14 @@ export default function AdminDashboard() {
       />
 
       <EditApplicantModal
-  isOpen={!!editModal.open}
-  applicantData={editModal.data}
-  onClose={() => setEditModal({ open: false, data: null })}
-  onSave={() => {
-    fetchData();
-    setEditModal({ open: false, data: null });
-  }}
-/>
+        isOpen={!!editModal.open}
+        applicantData={editModal.data}
+        onClose={() => setEditModal({ open: false, data: null })}
+        onSave={() => {
+          fetchData();
+          setEditModal({ open: false, data: null });
+        }}
+      />
     </>
   );
 }

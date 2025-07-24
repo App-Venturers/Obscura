@@ -28,7 +28,6 @@ export default function LoginPage() {
       }
 
       const user = signInData.user;
-
       const { data: userRecord, error: roleError } = await supabase
         .from("users")
         .select("role")
@@ -44,7 +43,6 @@ export default function LoginPage() {
       const role = userRecord.role;
       setRoleBadge(role);
       localStorage.setItem("userRole", role);
-
       navigate("/entry");
     } catch (err) {
       console.error("Login error:", err.message);
@@ -115,7 +113,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white text-black placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
               placeholder="you@example.com"
               autoComplete="email"
@@ -128,7 +126,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white text-black placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
               placeholder="********"
               autoComplete="current-password"

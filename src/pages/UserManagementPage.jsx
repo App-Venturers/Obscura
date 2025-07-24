@@ -1,8 +1,6 @@
-// File: src/pages/UserManagementPage.jsx
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
-import { CSVLink } from "react-csv";
 import Papa from "papaparse";
 import { toast } from "react-hot-toast";
 
@@ -50,17 +48,11 @@ export default function UserManagementPage() {
         fetchData
       )
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
+    return () => supabase.removeChannel(subscription);
   }, [fetchData]);
 
   const promoteToAdmin = async (id) => {
-    const { error } = await supabase
-      .from("users")
-      .update({ role: "admin" })
-      .eq("id", id);
+    const { error } = await supabase.from("users").update({ role: "admin" }).eq("id", id);
     if (error) toast.error("Promote failed: " + error.message);
     else {
       toast.success("Promoted to Admin");
@@ -69,10 +61,7 @@ export default function UserManagementPage() {
   };
 
   const demoteToUser = async (id) => {
-    const { error } = await supabase
-      .from("users")
-      .update({ role: "user" })
-      .eq("id", id);
+    const { error } = await supabase.from("users").update({ role: "user" }).eq("id", id);
     if (error) toast.error("Demote failed: " + error.message);
     else {
       toast.success("Demoted to User");
@@ -92,15 +81,14 @@ export default function UserManagementPage() {
     document.body.removeChild(link);
   };
 
-  const filteredUsers = users.filter((user) => {
-    if (roleFilter === "all") return true;
-    return user.role === roleFilter;
-  });
+  const filteredUsers = users.filter((user) =>
+    roleFilter === "all" ? true : user.role === roleFilter
+  );
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-        Loading users...
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <h2 className="text-xl animate-pulse">Loading users...</h2>
       </div>
     );
   }
@@ -108,17 +96,17 @@ export default function UserManagementPage() {
   return (
     <div className="p-6 max-w-6xl mx-auto bg-gray-950 text-white min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <h1 className="text-3xl font-bold text-purple-400">User Management</h1>
         <div className="flex gap-2">
           <button
-            className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded"
             onClick={() => navigate("/admin-dashboard")}
+            className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded"
           >
             Back
           </button>
           <button
-            className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded"
             onClick={exportToCSV}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-4 py-2 rounded text-white font-semibold"
           >
             Export CSV
           </button>
@@ -138,7 +126,7 @@ export default function UserManagementPage() {
         </select>
       </div>
 
-      <div className="overflow-x-auto rounded-lg shadow">
+      <div className="overflow-x-auto rounded-lg shadow border border-gray-800">
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-800 text-gray-300">
             <tr>
@@ -150,7 +138,7 @@ export default function UserManagementPage() {
           </thead>
           <tbody>
             {filteredUsers.map((user) => (
-              <tr key={user.id} className="border-b border-gray-700">
+              <tr key={user.id} className="border-b border-gray-800">
                 <td className="px-4 py-2">{user.email}</td>
                 <td className="px-4 py-2 capitalize">
                   <span
@@ -159,29 +147,27 @@ export default function UserManagementPage() {
                         ? "bg-red-600"
                         : user.role === "admin"
                         ? "bg-green-600"
-                        : "bg-gray-600"
+                        : "bg-blue-600"
                     }`}
                   >
                     {user.role}
                   </span>
                 </td>
-                <td className="px-4 py-2">
-                  {new Date(user.created_at).toLocaleDateString()}
-                </td>
+                <td className="px-4 py-2">{new Date(user.created_at).toLocaleDateString()}</td>
                 <td className="px-4 py-2 text-center">
                   {user.id === currentUserId ? (
                     <span className="text-sm italic text-gray-400">No Action</span>
                   ) : user.role === "user" ? (
                     <button
                       onClick={() => promoteToAdmin(user.id)}
-                      className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded"
+                      className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-white text-xs"
                     >
                       Promote
                     </button>
                   ) : (
                     <button
                       onClick={() => demoteToUser(user.id)}
-                      className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded"
+                      className="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-white text-xs"
                     >
                       Demote
                     </button>

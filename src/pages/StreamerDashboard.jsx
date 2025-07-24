@@ -32,10 +32,7 @@ export default function StreamerDashboard() {
       if (!error) {
         const allStreamers = data.filter((user) => {
           const platforms = user.platforms || [];
-          return (
-            Array.isArray(platforms) &&
-            platforms.some((p) => platformSet.includes(p))
-          );
+          return Array.isArray(platforms) && platforms.some((p) => platformSet.includes(p));
         });
         setStreamers(allStreamers);
         setFilteredData(allStreamers);
@@ -96,6 +93,8 @@ export default function StreamerDashboard() {
         const { error } = await supabase.from("users").insert(cleaned);
         if (!error) {
           addToast("CSV Imported");
+        } else {
+          addToast("Import failed", "error");
         }
       },
     });
@@ -176,20 +175,24 @@ export default function StreamerDashboard() {
       />
 
       <EditApplicantModal
-  isOpen={editModal.open}
-  applicantData={editModal.data}
-  onClose={() => setEditModal({ open: false, data: null })}
-  onSave={async () => {
-    // Refresh streamers after save
-    const { data } = await supabase
-      .from("users")
-      .select("*")
-      .not("full_name", "is", null)
-      .not("dob", "is", null);
-    setStreamers(data);
-    setFilteredData(data);
-  }}
-/>
+        isOpen={editModal.open}
+        applicantData={editModal.data}
+        onClose={() => setEditModal({ open: false, data: null })}
+        onSave={async () => {
+          const { data } = await supabase
+            .from("users")
+            .select("*")
+            .not("full_name", "is", null)
+            .not("dob", "is", null);
+          const platformSet = ["YouTube", "Twitch", "TikTok", "Facebook", "Instagram", "Other"];
+          const updated = data.filter((user) =>
+            Array.isArray(user.platforms) &&
+            user.platforms.some((p) => platformSet.includes(p))
+          );
+          setStreamers(updated);
+          setFilteredData(updated);
+        }}
+      />
     </>
   );
 }

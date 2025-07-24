@@ -6,9 +6,10 @@ import { FiMenu, FiLogOut, FiSettings, FiX } from "react-icons/fi";
 export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile drawer
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // icon-only for desktop
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [loadingPage, setLoadingPage] = useState(false);
+  const [adminInfo, setAdminInfo] = useState(null);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -19,13 +20,15 @@ export default function AdminLayout({ children }) {
 
       const { data, error } = await supabase
         .from("users")
-        .select("role")
+        .select("role, full_name, photo_url")
         .eq("id", user.id)
         .single();
 
       if (error || (data.role !== "admin" && data.role !== "superadmin")) {
         return navigate("/");
       }
+
+      setAdminInfo({ name: data.full_name, avatar: data.photo_url });
     };
 
     checkAccess();
@@ -57,20 +60,16 @@ export default function AdminLayout({ children }) {
       {/* Sidebar */}
       <aside
         className={`fixed z-30 lg:static transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 shadow-lg h-full
-          ${
-            sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"
-          } lg:translate-x-0 ${
-          sidebarCollapsed ? "lg:w-20" : "lg:w-64"
-        }`}
+          ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}
+          lg:translate-x-0 ${sidebarCollapsed ? "lg:w-20" : "lg:w-64"}
+        `}
       >
         <div className="px-4 py-6 flex flex-col h-full justify-between">
           <div>
-            {/* Sidebar toggle on desktop */}
             <div className="hidden lg:flex justify-end mb-4">
               <button
                 className="text-gray-400 hover:text-white"
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                title={sidebarCollapsed ? "Expand" : "Collapse"}
               >
                 {sidebarCollapsed ? <FiMenu size={20} /> : <FiX size={20} />}
               </button>
@@ -89,7 +88,7 @@ export default function AdminLayout({ children }) {
                 <a
                   key={href}
                   href={href}
-                  onClick={() => setSidebarOpen(false)} // mobile auto-close
+                  onClick={() => setSidebarOpen(false)}
                   className={`flex items-center px-4 py-2 rounded transition font-medium ${
                     location.pathname === href
                       ? "bg-blue-600 text-white"
@@ -125,11 +124,27 @@ export default function AdminLayout({ children }) {
             </button>
             <h1 className="text-lg font-semibold tracking-wide">Obscura Admin</h1>
           </div>
-          <div className="flex items-center gap-4 text-xl text-gray-600 dark:text-gray-300">
-            <FiSettings className="cursor-pointer hover:text-blue-500 transition" title="Settings" />
+
+          <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300">
+            {adminInfo && (
+              <div className="flex items-center gap-2">
+                {adminInfo.avatar ? (
+                  <img
+                    src={adminInfo.avatar}
+                    alt="Admin Avatar"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-purple-600"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
+                    {adminInfo.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-sm font-medium">{adminInfo.name}</span>
+              </div>
+            )}
+            <FiSettings className="cursor-pointer hover:text-blue-500 transition" />
             <FiLogOut
               className="cursor-pointer hover:text-red-500 transition"
-              title="Logout"
               onClick={async () => {
                 await supabase.auth.signOut();
                 navigate("/");

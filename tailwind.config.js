@@ -12,7 +12,18 @@ module.exports = {
       animation: {
         'door-open': 'door-open 0.8s ease-in-out forwards',
       },
+      colors: {
+        primary: "#7c3aed", // Optional
+        dark: "#111827",    // Optional
+      },
+      fontFamily: {
+        heading: ['"Oswald"', "sans-serif"], // Optional
+      },
     },
   },
-  plugins: [],
+  plugins: [
+  require('@tailwindcss/forms'),
+  require('@tailwindcss/typography'),      // If you style long text/NDA sections
+  require('@tailwindcss/aspect-ratio'),    // For embedded video/image control
+],
 };

@@ -24,6 +24,7 @@ const AppRoutes = ({ user, role }) => {
       <Route path="/" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/update-password" element={<UpdatePassword />} />
+      <Route path="/admin-login" element={<AdminLogin />} /> {/* ✅ Public */}
 
       {/* Authenticated Routes */}
       <Route
@@ -59,17 +60,7 @@ const AppRoutes = ({ user, role }) => {
         }
       />
 
-      {/* Admin Login */}
-      <Route
-        path="/admin-login"
-        element={
-          <ProtectedRoute user={user} userRole={role}>
-            <AdminLogin />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Admin Overview */}
+      {/* Admin Routes */}
       <Route
         path="/admin-overview"
         element={
@@ -80,8 +71,6 @@ const AppRoutes = ({ user, role }) => {
           </ProtectedRoute>
         }
       />
-
-      {/* Admin Dashboard */}
       <Route
         path="/admin-dashboard"
         element={
@@ -92,8 +81,6 @@ const AppRoutes = ({ user, role }) => {
           </ProtectedRoute>
         }
       />
-
-      {/* Streamer Dashboard */}
       <Route
         path="/streamers"
         element={
@@ -104,8 +91,6 @@ const AppRoutes = ({ user, role }) => {
           </ProtectedRoute>
         }
       />
-
-      {/* Superadmin User Management */}
       <Route
         path="/user-management"
         element={

@@ -33,7 +33,6 @@ export default function SignupPage() {
       if (event === "SIGNED_IN" && session?.user) {
         const user = session.user;
 
-        // 👤 Check if user already exists in `users` table
         const { data: existingUser, error: fetchError } = await supabase
           .from("users")
           .select("id")
@@ -50,17 +49,16 @@ export default function SignupPage() {
           ]);
 
           if (insertError) {
-            console.error("❌ Failed to insert into users:", insertError.message);
+            console.error("❌ Failed to insert user:", insertError.message);
           }
         }
 
-        // ✅ Redirect
         navigate("/entry");
       }
     });
 
     return () => {
-      listener.subscription.unsubscribe();
+      listener?.subscription?.unsubscribe();
     };
   }, [navigate]);
 
@@ -95,8 +93,8 @@ export default function SignupPage() {
         setShowConfirmation(true);
       }
     } catch (err) {
-      console.error("Unexpected signup error:", err.message || err);
-      setError("An unexpected error occurred.");
+      console.error("Signup error:", err.message || err);
+      setError("Unexpected error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -121,7 +119,6 @@ export default function SignupPage() {
           alt="Obscura Logo"
           className="h-16 mx-auto mb-4"
         />
-
         <h2 className="text-3xl font-bold mb-6 text-gray-800">{t.heading}</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
@@ -130,22 +127,22 @@ export default function SignupPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">{t.emailLabel}</label>
             <input
               type="email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
               placeholder={t.emailPlaceholder}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t.passwordLabel}</label>
             <input
               type="password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
               placeholder={t.passwordPlaceholder}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
           <button
@@ -158,12 +155,20 @@ export default function SignupPage() {
         </form>
 
         <p className="mt-4 text-sm text-gray-600">
-          {t.alreadyHave} <a href="/" className="text-blue-500 hover:underline">{t.logIn}</a>
+          {t.alreadyHave}{" "}
+          <a href="/" className="text-blue-500 hover:underline">
+            {t.logIn}
+          </a>
         </p>
 
         <div className="flex justify-center space-x-6 mt-6">
           {["youtube", "Facebook", "TikTok"].map((platform) => (
-            <a key={platform} href={`https://${platform.toLowerCase()}.com`} target="_blank" rel="noreferrer">
+            <a
+              key={platform}
+              href={`https://${platform.toLowerCase()}.com`}
+              target="_blank"
+              rel="noreferrer"
+            >
               <img
                 src={`https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets/${platform}.png`}
                 alt={platform}

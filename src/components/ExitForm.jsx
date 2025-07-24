@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 export default function ExitForm() {
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ export default function ExitForm() {
     suggestions: "",
     ndaConfirm: false,
     contractConfirm: false,
-    accuracyConfirm: false
+    accuracyConfirm: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -27,13 +28,13 @@ export default function ExitForm() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: userRecord, error } = await supabase
+      const { data: userRecord } = await supabase
         .from("users")
         .select("status")
         .eq("id", user.id)
         .single();
 
-      if (!error && userRecord?.status === "leaving_pending") {
+      if (userRecord?.status === "leaving_pending") {
         setIsAuthorized(true);
       }
     };
@@ -53,9 +54,9 @@ export default function ExitForm() {
     e.preventDefault();
     setLoading(true);
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert("Session expired. Please log in again.");
+      toast.error("Session expired. Please log in again.");
       return navigate("/login");
     }
 
@@ -69,21 +70,16 @@ export default function ExitForm() {
       positive_experience: formData.positives,
       challenges: formData.challenges,
       join_date: formData.join_date || null,
-      exit_requested_at: formData.exit_requested_at || null
+      exit_requested_at: formData.exit_requested_at || null,
     };
 
-    const { error } = await supabase
-      .from("users")
-      .update(updates)
-      .eq("id", user.id);
-
+    const { error } = await supabase.from("users").update(updates).eq("id", user.id);
     setLoading(false);
 
     if (error) {
-      alert("There was an error submitting your exit form.");
-      console.error("Exit form error:", error.message);
+      toast.error("There was an error submitting your exit form.");
     } else {
-      alert("Thank you for your feedback. You've been marked as left.");
+      toast.success("Thank you for your feedback. You’ve been marked as left.");
       navigate("/");
     }
   };
@@ -104,25 +100,59 @@ export default function ExitForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1">Full Name</label>
-              <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" required />
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full p-2 bg-gray-700 border border-gray-600 rounded"
+                required
+              />
             </div>
             <div>
               <label className="block mb-1">In-Game Name (IGN)</label>
-              <input type="text" name="ign" value={formData.ign} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" required />
+              <input
+                type="text"
+                name="ign"
+                value={formData.ign}
+                onChange={handleChange}
+                className="w-full p-2 bg-gray-700 border border-gray-600 rounded"
+                required
+              />
             </div>
             <div>
               <label className="block mb-1">Date of Joining</label>
-              <input type="date" name="join_date" value={formData.join_date} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" required />
+              <input
+                type="date"
+                name="join_date"
+                value={formData.join_date}
+                onChange={handleChange}
+                className="w-full p-2 bg-gray-700 border border-gray-600 rounded"
+                required
+              />
             </div>
             <div>
               <label className="block mb-1">Date of Exit Request</label>
-              <input type="date" name="exit_requested_at" value={formData.exit_requested_at} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" required />
+              <input
+                type="date"
+                name="exit_requested_at"
+                value={formData.exit_requested_at}
+                onChange={handleChange}
+                className="w-full p-2 bg-gray-700 border border-gray-600 rounded"
+                required
+              />
             </div>
           </div>
 
           <div>
             <label className="block mb-1">Reason for Leaving</label>
-            <select name="reason" value={formData.reason} onChange={handleChange} required className="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+            <select
+              name="reason"
+              value={formData.reason}
+              onChange={handleChange}
+              required
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded"
+            >
               <option value="">-- Select Reason --</option>
               <option value="personal">Personal Reasons</option>
               <option value="time">Not Enough Time</option>
@@ -144,35 +174,78 @@ export default function ExitForm() {
 
           <div>
             <label className="block mb-1">What were the positive aspects of your time with Obscura Esports?</label>
-            <textarea name="positives" value={formData.positives} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" rows={2}></textarea>
+            <textarea
+              name="positives"
+              value={formData.positives}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded"
+              rows={2}
+            ></textarea>
           </div>
 
           <div>
             <label className="block mb-1">What challenges did you face during your time with the organization?</label>
-            <textarea name="challenges" value={formData.challenges} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" rows={2}></textarea>
+            <textarea
+              name="challenges"
+              value={formData.challenges}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded"
+              rows={2}
+            ></textarea>
           </div>
 
           <div>
             <label className="block mb-1">Suggestions for improving the experience for future members:</label>
-            <textarea name="suggestions" value={formData.suggestions} onChange={handleChange} className="w-full p-2 bg-gray-700 border border-gray-600 rounded" rows={3}></textarea>
+            <textarea
+              name="suggestions"
+              value={formData.suggestions}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded"
+              rows={3}
+            ></textarea>
           </div>
 
           <div className="space-y-2">
             <label className="flex items-center">
-              <input type="checkbox" name="contractConfirm" checked={formData.contractConfirm} onChange={handleChange} className="mr-2" required />
+              <input
+                type="checkbox"
+                name="contractConfirm"
+                checked={formData.contractConfirm}
+                onChange={handleChange}
+                className="mr-2"
+                required
+              />
               I understand and agree to any contractual obligations related to my departure.
             </label>
             <label className="flex items-center">
-              <input type="checkbox" name="ndaConfirm" checked={formData.ndaConfirm} onChange={handleChange} className="mr-2" required />
+              <input
+                type="checkbox"
+                name="ndaConfirm"
+                checked={formData.ndaConfirm}
+                onChange={handleChange}
+                className="mr-2"
+                required
+              />
               I am still bound by NDA and agree not to disclose confidential info.
             </label>
             <label className="flex items-center">
-              <input type="checkbox" name="accuracyConfirm" checked={formData.accuracyConfirm} onChange={handleChange} className="mr-2" required />
+              <input
+                type="checkbox"
+                name="accuracyConfirm"
+                checked={formData.accuracyConfirm}
+                onChange={handleChange}
+                className="mr-2"
+                required
+              />
               I confirm the information above is accurate and I am voluntarily submitting this form.
             </label>
           </div>
 
-          <button type="submit" disabled={loading} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded w-full font-semibold">
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded w-full font-semibold"
+          >
             {loading ? "Submitting..." : "Submit Exit Request"}
           </button>
         </form>

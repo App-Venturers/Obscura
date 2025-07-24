@@ -15,7 +15,7 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
   const [showOtherLanguage, setShowOtherLanguage] = useState(false);
   const [showOtherSoftware, setShowOtherSoftware] = useState(false);
 
-  const platforms = ["YouTube", "Twitch", "Facebook", "Instagram", "Kick", "TikTok" , "Other"];
+  const platforms = ["YouTube", "Twitch", "Facebook", "Instagram", "Kick", "TikTok", "Other"];
   const languages = ["Afrikaans", "English", "Other"];
   const softwareOptions = [
     "OBS",
@@ -27,10 +27,10 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
   ];
 
   useEffect(() => {
-    setShowOtherPlatform(formData.platforms?.includes("Other"));
-    setShowOtherLanguage(formData.languages?.includes("Other"));
-    setShowOtherSoftware(formData.software?.includes("Other"));
-  }, [formData.platforms, formData.languages, formData.software]);
+    setShowOtherPlatform(!!formData?.platforms?.includes("Other"));
+    setShowOtherLanguage(!!formData?.languages?.includes("Other"));
+    setShowOtherSoftware(!!formData?.software?.includes("Other"));
+  }, [formData]);
 
   const handleMultiCheckboxChange = (e, field) => {
     const { value, checked } = e.target;
@@ -80,33 +80,55 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
           </div>
         </div>
 
-        {/* Platforms */}
-        <div className="col-span-full">
-          <label className="block text-sm font-medium text-purple-300 mb-1">Streaming Platforms</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {platforms.map((platform) => (
-              <label key={platform} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  value={platform}
-                  checked={formData.platforms?.includes(platform)}
-                  onChange={(e) => handleMultiCheckboxChange(e, "platforms")}
-                  className="accent-purple-500 w-4 h-4"
-                />
-                <span className="text-sm text-white">{platform}</span>
-              </label>
-            ))}
-          </div>
-          {showOtherPlatform && (
-            <input
-              name="other_platform"
-              placeholder="Other Platform"
-              value={formData.other_platform || ""}
-              onChange={handleChange}
-              className="recruitment-input mt-2"
-            />
-          )}
-        </div>
+       {/* Platforms */}
+<div className="col-span-full">
+  <label className="block text-sm font-medium text-purple-300 mb-1">
+    Streaming Platforms
+  </label>
+  <div className="flex flex-wrap gap-3">
+    {platforms.map((platform) => {
+      const isSelected = formData.platforms?.includes(platform);
+      const iconMap = {
+        YouTube: "📺",
+        Twitch: "🎮",
+        Facebook: "📘",
+        Instagram: "📸",
+        Kick: "🟢",
+        TikTok: "🎵",
+        Other: "➕",
+      };
+      return (
+        <button
+          key={platform}
+          type="button"
+          onClick={() =>
+            handleMultiCheckboxChange(
+              { target: { value: platform, checked: !isSelected } },
+              "platforms"
+            )
+          }
+          className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium ${
+            isSelected
+              ? "bg-blue-600 border-blue-700 text-white"
+              : "bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700"
+          }`}
+        >
+          <span>{iconMap[platform]}</span>
+          <span>{platform}</span>
+        </button>
+      );
+    })}
+  </div>
+  {showOtherPlatform && (
+    <input
+      name="other_platform"
+      placeholder="Other Platform"
+      value={formData.other_platform || ""}
+      onChange={handleChange}
+      className="recruitment-input mt-2"
+    />
+  )}
+</div>
 
         {/* Platform URLs and followers */}
         {(formData.platforms || []).map((platform) => {
@@ -156,33 +178,50 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
           </div>
         </div>
 
-        {/* Languages */}
-        <div className="col-span-full">
-          <label className="block text-sm font-medium text-purple-300 mb-1">Languages</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {languages.map((lang) => (
-              <label key={lang} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  value={lang}
-                  checked={formData.languages?.includes(lang)}
-                  onChange={(e) => handleMultiCheckboxChange(e, "languages")}
-                  className="accent-purple-500 w-4 h-4"
-                />
-                <span className="text-sm text-white">{lang}</span>
-              </label>
-            ))}
-          </div>
-          {showOtherLanguage && (
-            <input
-              name="other_language"
-              placeholder="Other Language"
-              value={formData.other_language || ""}
-              onChange={handleChange}
-              className="recruitment-input mt-2"
-            />
-          )}
-        </div>
+       {/* Languages */}
+<div className="col-span-full">
+  <label className="block text-sm font-medium text-purple-300 mb-1">Languages</label>
+  <div className="flex flex-wrap gap-3">
+    {languages.map((lang) => {
+      const isSelected = formData.languages?.includes(lang);
+      const iconMap = {
+        English: "🇬🇧",
+        Afrikaans: "🇿🇦",
+        Other: "🌍",
+      };
+      return (
+        <button
+          key={lang}
+          type="button"
+          onClick={() =>
+            handleMultiCheckboxChange(
+              { target: { value: lang, checked: !isSelected } },
+              "languages"
+            )
+          }
+          className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium ${
+            isSelected
+              ? "bg-blue-600 border-blue-700 text-white"
+              : "bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700"
+          }`}
+        >
+          <span>{iconMap[lang]}</span>
+          <span>{lang}</span>
+        </button>
+      );
+    })}
+  </div>
+  {showOtherLanguage && (
+    <input
+      name="other_language"
+      placeholder="Other Language"
+      value={formData.other_language || ""}
+      onChange={handleChange}
+      className="recruitment-input mt-2"
+    />
+  )}
+</div>
+
 
         {/* Internet speed */}
         <div>
@@ -196,33 +235,52 @@ export default function CreatorFieldsCard({ formData, handleChange }) {
           />
         </div>
 
-        {/* Software */}
-        <div className="col-span-full">
-          <label className="block text-sm font-medium text-purple-300 mb-1">Streaming Software</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {softwareOptions.map((software) => (
-              <label key={software} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  value={software}
-                  checked={formData.software?.includes(software)}
-                  onChange={(e) => handleMultiCheckboxChange(e, "software")}
-                  className="accent-purple-500 w-4 h-4"
-                />
-                <span className="text-sm text-white">{software}</span>
-              </label>
-            ))}
-          </div>
-          {showOtherSoftware && (
-            <input
-              name="other_software"
-              placeholder="Other Software"
-              value={formData.other_software || ""}
-              onChange={handleChange}
-              className="recruitment-input mt-2"
-            />
-          )}
-        </div>
+     {/* Software */}
+<div className="col-span-full">
+  <label className="block text-sm font-medium text-purple-300 mb-1">Streaming Software</label>
+  <div className="flex flex-wrap gap-3">
+    {softwareOptions.map((software) => {
+      const isSelected = formData.software?.includes(software);
+      const iconMap = {
+        OBS: "🖥️",
+        Streamlabs: "📊",
+        "Facebook Live Studio": "📘",
+        "YouTube Live Studio": "📺",
+        "TikTok Live Studio": "🎵",
+        Other: "⚙️",
+      };
+      return (
+        <button
+          key={software}
+          type="button"
+          onClick={() =>
+            handleMultiCheckboxChange(
+              { target: { value: software, checked: !isSelected } },
+              "software"
+            )
+          }
+          className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium ${
+            isSelected
+              ? "bg-blue-600 border-blue-700 text-white"
+              : "bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700"
+          }`}
+        >
+          <span>{iconMap[software]}</span>
+          <span>{software}</span>
+        </button>
+      );
+    })}
+  </div>
+  {showOtherSoftware && (
+    <input
+      name="other_software"
+      placeholder="Other Software"
+      value={formData.other_software || ""}
+      onChange={handleChange}
+      className="recruitment-input mt-2"
+    />
+  )}
+</div>
 
         {/* Equipment */}
         <div>

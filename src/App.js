@@ -1,72 +1,84 @@
 // File: src/App.js
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { supabase } from "./supabaseClient";
 import AppRoutes from "./routes";
+import { ToastProvider } from "./context/ToastContext";
+import ThemeProvider from "./context/ThemeProvider";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-function App() {
+export default function App() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(localStorage.getItem("userRole") || null);
-  const [checking, setChecking] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      const sessionUser = data?.user || null;
-      setUser(sessionUser);
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      const currentUser = data?.session?.user || null;
+      setUser(currentUser);
 
-      if (sessionUser) {
-        let resolvedRole = localStorage.getItem("userRole");
+      if (currentUser) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", currentUser.id)
+          .single();
 
-        if (!resolvedRole) resolvedRole = sessionUser.user_metadata?.role;
-
-        if (!resolvedRole) {
-          const { data: profile } = await supabase
-            .from("users")
-            .select("role")
-            .eq("id", sessionUser.id)
-            .single();
-
-          resolvedRole = profile?.role || "user";
-        }
-
-        setRole(resolvedRole);
-        localStorage.setItem("userRole", resolvedRole);
+        const userRole = profile?.role || "user";
+        setRole(userRole);
+        localStorage.setItem("userRole", userRole);
       }
 
-      setChecking(false);
+      setLoading(false);
     };
 
-    fetchUser();
+    init();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const sessionUser = session?.user || null;
-      setUser(sessionUser);
+      const currentUser = session?.user || null;
+      setUser(currentUser);
 
-      if (!sessionUser) {
+      if (!currentUser) {
         setRole(null);
         localStorage.removeItem("userRole");
+        return;
       }
+
+      supabase
+        .from("users")
+        .select("role")
+        .eq("id", currentUser.id)
+        .single()
+        .then(({ data }) => {
+          const newRole = data?.role || "user";
+          setRole(newRole);
+          localStorage.setItem("userRole", newRole);
+        });
     });
 
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  if (checking) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        <p className="text-xl font-semibold animate-pulse">Loading...</p>
+      <div className="h-screen w-screen flex items-center justify-center bg-black text-white text-xl font-bold">
+        Loading...
       </div>
     );
   }
 
   return (
-    <BrowserRouter>
-      <Toaster position="top-right" reverseOrder={false} />
-      <AppRoutes user={user} role={role} />
-    </BrowserRouter>
+    <ToastProvider>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <BrowserRouter>
+            <Toaster position="top-right" />
+            <AppRoutes user={user} role={role} />
+          </BrowserRouter>
+        </ErrorBoundary>
+      </ThemeProvider>
+    </ToastProvider>
   );
 }
-
-export default App;

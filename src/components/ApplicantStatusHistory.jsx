@@ -1,10 +1,12 @@
-// ✅ AdminStatusHistoryTab.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { useToast } from "../context/ToastContext"; // Optional: Add toast notifications
 
 export default function AdminStatusHistoryTab() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+  const { addToast } = useToast?.() || {}; // Optional safety
 
   useEffect(() => {
     const fetchAllHistory = async () => {
@@ -13,14 +15,20 @@ export default function AdminStatusHistoryTab() {
         .select("id, applicant_id, old_status, new_status, changed_by, changed_at")
         .order("changed_at", { ascending: false });
 
-      if (error) console.error("Fetch all status history error:", error);
-      else setHistory(data);
+      if (error) {
+        setErrorMsg("Failed to load status history.");
+        if (addToast) addToast("Error loading status history");
+        // console.error("Fetch all status history error:", error); // ❌ Removed for security
+      } else {
+        setHistory(data || []);
+      }
       setLoading(false);
     };
     fetchAllHistory();
   }, []);
 
   if (loading) return <p className="text-gray-300">Loading status history...</p>;
+  if (errorMsg) return <p className="text-red-500">{errorMsg}</p>;
 
   return (
     <div className="p-6 bg-gray-900 rounded-xl shadow max-w-6xl mx-auto">
@@ -42,7 +50,9 @@ export default function AdminStatusHistoryTab() {
               <td className="p-2 border capitalize">{entry.old_status}</td>
               <td className="p-2 border capitalize">{entry.new_status}</td>
               <td className="p-2 border">{entry.changed_by || "-"}</td>
-              <td className="p-2 border">{new Date(entry.changed_at).toLocaleString()}</td>
+              <td className="p-2 border">
+                {new Date(entry.changed_at).toLocaleString()}
+              </td>
             </tr>
           ))}
         </tbody>

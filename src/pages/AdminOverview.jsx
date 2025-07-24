@@ -19,37 +19,38 @@ export default function AdminOverview() {
     leaving_pending: 0,
     left: 0,
   });
-  const [previousStats, setPreviousStats] = useState(null);
+  const [previousStats, setPreviousStats] = useState(null); // Optional: support for % change
 
   useEffect(() => {
     const fetchStats = async () => {
-      const baseQuery = supabase
-        .from("users")
-        .select("*", { count: "exact", head: true })
-        .not("full_name", "is", null)
-        .not("dob", "is", null);
+      const filters = (query) =>
+        query.not("full_name", "is", null).not("dob", "is", null);
 
-      const { count: total } = await baseQuery;
+      // Total count
+      const { count: total } = await filters(
+        supabase.from("users").select("*", { count: "exact", head: true })
+      );
 
-      const statuses = ["approved", "declined", "banned", "leaving_pending", "left"];
-      const counts = await Promise.all(
-        statuses.map((status) =>
-          supabase
-            .from("users")
-            .select("*", { count: "exact", head: true })
-            .eq("status", status)
-            .not("full_name", "is", null)
-            .not("dob", "is", null)
+      // Status-specific counts
+      const statusKeys = ["approved", "declined", "banned", "leaving_pending", "left"];
+      const statusCounts = await Promise.all(
+        statusKeys.map((status) =>
+          filters(
+            supabase
+              .from("users")
+              .select("*", { count: "exact", head: true })
+              .eq("status", status)
+          )
         )
       );
 
       setStats({
         total: total || 0,
-        approved: counts[0].count || 0,
-        declined: counts[1].count || 0,
-        banned: counts[2].count || 0,
-        leaving_pending: counts[3].count || 0,
-        left: counts[4].count || 0,
+        approved: statusCounts[0].count || 0,
+        declined: statusCounts[1].count || 0,
+        banned: statusCounts[2].count || 0,
+        leaving_pending: statusCounts[3].count || 0,
+        left: statusCounts[4].count || 0,
       });
     };
 
@@ -63,7 +64,7 @@ export default function AdminOverview() {
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold tracking-wide">Overview</h2>
+      <h2 className="text-2xl font-bold tracking-wide text-white">Overview</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         <StatCard

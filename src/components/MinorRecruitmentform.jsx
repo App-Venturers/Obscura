@@ -77,7 +77,10 @@ export default function MinorRecruitmentForm() {
     e.preventDefault();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return alert("Authentication error. Please re-login.");
+    if (authError || !user) {
+      alert("Authentication error. Please re-login.");
+      return navigate("/login");
+    }
 
     const rawData = {
       ...formData,
@@ -92,7 +95,6 @@ export default function MinorRecruitmentForm() {
     };
 
     const cleanedData = sanitizePayload(rawData);
-    console.log("Submitting cleaned minor data:", cleanedData);
 
     const { error: updateError } = await supabase
       .from("users")
@@ -100,8 +102,8 @@ export default function MinorRecruitmentForm() {
       .eq("id", user.id);
 
     if (updateError) {
-      console.error("Minor recruitment error:", updateError.message);
-      return alert("Submission failed. Please try again.");
+      alert("Submission failed. Please try again.");
+      return;
     }
 
     alert("Minor application submitted successfully!");

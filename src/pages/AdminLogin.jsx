@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
@@ -15,6 +15,26 @@ export default function AdminLogin() {
     background:
       "https://eetgxwgbysyezclsecwd.supabase.co/storage/v1/object/public/public-assets//wallpaperflare.com_wallpaper%20(57).jpg",
   };
+
+  // ✅ If already logged in and role is admin, auto-redirect
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roleData } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (roleData?.role && ["admin", "superadmin"].includes(roleData.role)) {
+        navigate("/admin-overview");
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -67,10 +87,10 @@ export default function AdminLogin() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
+      className="min-h-screen flex items-center justify-center bg-cover bg-center px-4 relative"
       style={{ backgroundImage: `url('${assets.background}')` }}
     >
-      <div className="bg-black bg-opacity-80 p-8 rounded-xl shadow-xl max-w-sm w-full relative z-10">
+      <div className="bg-black bg-opacity-80 p-8 rounded-xl shadow-xl max-w-sm w-full z-10">
         <img
           src={assets.logo}
           alt="Obscura Logo"
@@ -80,10 +100,12 @@ export default function AdminLogin() {
           Admin Login
         </h1>
 
-        {error && <p className="text-red-500 text-sm text-center mb-3">{error}</p>}
+        {error && (
+          <div className="text-red-500 text-sm text-center mb-3">{error}</div>
+        )}
 
         {roleBadge && (
-          <p className="text-sm text-center mb-4">
+          <div className="text-sm text-center mb-4">
             Role detected:{" "}
             <span
               className={`inline-block px-2 py-1 rounded text-white font-semibold text-xs ${
@@ -96,14 +118,14 @@ export default function AdminLogin() {
             >
               {roleBadge}
             </span>
-          </p>
+          </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <input
             type="email"
             placeholder="Email"
-            className="w-full p-3 rounded bg-gray-100 text-black"
+            className="w-full p-3 rounded bg-gray-100 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -111,16 +133,15 @@ export default function AdminLogin() {
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-3 rounded bg-gray-100 text-black"
+            className="w-full p-3 rounded bg-gray-100 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded font-semibold transition"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded font-semibold transition disabled:opacity-50"
           >
             {loading ? "Logging in..." : "Log In"}
           </button>
