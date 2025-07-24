@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
@@ -9,13 +9,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [roleBadge, setRoleBadge] = useState("");
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let isMounted = true;
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,18 +21,13 @@ export default function LoginPage() {
         password,
       });
 
-      if (signInError) {
+      if (signInError || !signInData?.user) {
         setError("Invalid email or password.");
         setLoading(false);
         return;
       }
 
-      const user = signInData?.user;
-      if (!user) {
-        setError("Login failed. No user found.");
-        setLoading(false);
-        return;
-      }
+      const user = signInData.user;
 
       const { data: userRecord, error: roleError } = await supabase
         .from("users")
@@ -55,10 +43,9 @@ export default function LoginPage() {
 
       const role = userRecord.role;
       setRoleBadge(role);
+      localStorage.setItem("userRole", role);
 
-      setTimeout(() => {
-        navigate("/entry");
-      }, 1000);
+      navigate("/entry");
     } catch (err) {
       console.error("Login error:", err.message);
       setError("Unexpected error. Please try again.");
