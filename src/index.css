@@ -12,6 +12,10 @@ body {
   @apply w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400;
 }
 
+.btn-gradient {
+  @apply bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:from-purple-600 hover:to-blue-600 transition-shadow shadow-md rounded;
+}
+
 /* Button Variants */
 .btn-primary {
   @apply bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded transition;

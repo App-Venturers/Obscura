@@ -122,13 +122,13 @@ export default function StreamerDashboard() {
       </div>
 
       <div className="flex flex-wrap gap-3 items-center mb-6">
-        <input
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border dark:border-gray-700 px-3 py-2 rounded"
-        />
+    <input
+  type="text"
+  placeholder="Search..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  className="border dark:border-gray-700 px-3 py-2 rounded text-black dark:text-white bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500"
+/>
         <label className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer">
           Import CSV
           <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />

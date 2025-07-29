@@ -10,6 +10,7 @@ import ApplicantRow from "./ApplicantRow";
 import DeclineModal from "./DeclineModal";
 import EditApplicantModal from "./EditApplicantModal";
 import { useToast } from "../context/ToastContext";
+import GradientButton from "./GradientButton";
 
 export default function AdminDashboard() {
   const [data, setData] = useState([]);
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        navigate("/entry"); // Not logged in
+        navigate("/entry");
         return;
       }
 
@@ -69,7 +70,7 @@ export default function AdminDashboard() {
         .single();
 
       if (roleError || !roleData?.role || !["admin", "superadmin"].includes(roleData.role)) {
-        navigate("/entry"); // Not authorized
+        navigate("/entry");
         return;
       }
 
@@ -194,16 +195,13 @@ export default function AdminDashboard() {
           <CSVLink
             data={filteredData}
             filename="applicants.csv"
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded font-medium shadow-md hover:opacity-90 transition"
           >
             Export CSV
           </CSVLink>
-          <button
-            onClick={handleExportPDF}
-            className="bg-indigo-600 text-white px-4 py-2 rounded"
-          >
+          <GradientButton from="indigo-500" to="indigo-700" onClick={handleExportPDF}>
             Export PDF
-          </button>
+          </GradientButton>
         </div>
       </div>
 
@@ -229,26 +227,20 @@ export default function AdminDashboard() {
           placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border dark:border-gray-700 px-3 py-2 rounded"
+          className="border dark:border-gray-700 px-3 py-2 rounded text-black dark:text-white bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500"
         />
-        <label className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer">
+        <label className="bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-2 rounded font-medium shadow-md cursor-pointer hover:opacity-90 transition">
           Import CSV
           <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
         </label>
         {selectedRows.length > 0 && (
           <>
-            <button
-              onClick={() => handleBulkAction("approved")}
-              className="bg-green-700 text-white px-4 py-2 rounded"
-            >
+            <GradientButton from="green-500" to="green-700" onClick={() => handleBulkAction("approved")}>
               Approve All
-            </button>
-            <button
-              onClick={() => handleBulkAction("banned")}
-              className="bg-red-700 text-white px-4 py-2 rounded"
-            >
+            </GradientButton>
+            <GradientButton from="red-500" to="red-700" onClick={() => handleBulkAction("banned")}>
               Ban All
-            </button>
+            </GradientButton>
           </>
         )}
       </div>
