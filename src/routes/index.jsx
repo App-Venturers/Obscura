@@ -16,6 +16,11 @@ import UpdatePassword from "../pages/UpdatePassword";
 import AdminOverview from "../pages/AdminOverview";
 import StreamerDashboard from "../pages/StreamerDashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import ReferPage from "../pages/ReferPage";
+import UpdateDetailsPage from "../pages/UpdateDetailsPage";
+import HRSupportPage from "../pages/HRSupportPage";
+import MyHRTicketsPage from "../pages/MyHRTicketsPage";
+import AdminHRTicketsPage from "../pages/AdminHRTicketsPage";
 
 const AppRoutes = ({ user, role }) => {
   return (
@@ -24,7 +29,7 @@ const AppRoutes = ({ user, role }) => {
       <Route path="/" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/update-password" element={<UpdatePassword />} />
-      <Route path="/admin-login" element={<AdminLogin />} /> {/* ✅ Public */}
+      <Route path="/admin-login" element={<AdminLogin />} />
 
       {/* Authenticated Routes */}
       <Route
@@ -32,6 +37,38 @@ const AppRoutes = ({ user, role }) => {
         element={
           <ProtectedRoute user={user} userRole={role}>
             <EntryPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/refer"
+        element={
+          <ProtectedRoute user={user} userRole={role}>
+            <ReferPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/update-details"
+        element={
+          <ProtectedRoute user={user} userRole={role}>
+            <UpdateDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/hr-support"
+        element={
+          <ProtectedRoute user={user} userRole={role}>
+            <HRSupportPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-hr-tickets"
+        element={
+          <ProtectedRoute user={user} userRole={role}>
+            <MyHRTicketsPage />
           </ProtectedRoute>
         }
       />
@@ -101,6 +138,17 @@ const AppRoutes = ({ user, role }) => {
           </ProtectedRoute>
         }
       />
+
+      <Route
+  path="/admin-hr-tickets"
+  element={
+    <ProtectedRoute user={user} userRole={role} role="admin">
+      <AdminLayout>
+        <AdminHRTicketsPage />
+      </AdminLayout>
+    </ProtectedRoute>
+  }
+/>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to={user ? "/entry" : "/"} replace />} />

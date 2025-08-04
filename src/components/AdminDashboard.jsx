@@ -57,7 +57,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-
       if (!user) {
         navigate("/entry");
         return;
@@ -85,10 +84,22 @@ export default function AdminDashboard() {
   useEffect(() => {
     let result = [...data];
 
-    if (tabFilter === "minors") result = result.filter((r) => r.is_minor);
-    if (tabFilter === "non-minors") result = result.filter((r) => !r.is_minor);
-    if (tabFilter === "banned") result = result.filter((r) => r.status === "banned");
-    if (tabFilter === "left") result = result.filter((r) => r.status === "left");
+    switch (tabFilter) {
+      case "minors":
+        result = result.filter((r) => r.is_minor);
+        break;
+      case "non-minors":
+        result = result.filter((r) => !r.is_minor);
+        break;
+      case "banned":
+        result = result.filter((r) => r.status === "banned");
+        break;
+      case "left":
+        result = result.filter((r) => r.status === "left");
+        break;
+      default:
+        result = result.filter((r) => r.status !== "banned" && r.status !== "left");
+    }
 
     if (search.trim()) {
       result = result.filter((row) =>
@@ -219,30 +230,6 @@ export default function AdminDashboard() {
             {tab.charAt(0).toUpperCase() + tab.slice(1).replace("-", " ")}
           </button>
         ))}
-      </div>
-
-      <div className="flex flex-wrap gap-3 items-center mb-6">
-        <input
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border dark:border-gray-700 px-3 py-2 rounded text-black dark:text-white bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500"
-        />
-        <label className="bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-2 rounded font-medium shadow-md cursor-pointer hover:opacity-90 transition">
-          Import CSV
-          <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
-        </label>
-        {selectedRows.length > 0 && (
-          <>
-            <GradientButton from="green-500" to="green-700" onClick={() => handleBulkAction("approved")}>
-              Approve All
-            </GradientButton>
-            <GradientButton from="red-500" to="red-700" onClick={() => handleBulkAction("banned")}>
-              Ban All
-            </GradientButton>
-          </>
-        )}
       </div>
 
       <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded shadow">

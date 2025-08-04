@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
 import { supabase } from "../supabaseClient";
+import NavigationBar from "./NavigationBar";
+import GradientButton from "./GradientButton";
 
 export default function EntryPage() {
   const navigate = useNavigate();
@@ -9,27 +11,28 @@ export default function EntryPage() {
   const [animateOut, setAnimateOut] = useState(false);
   const [showAdminButton, setShowAdminButton] = useState(false);
   const [showExitFormButton, setShowExitFormButton] = useState(false);
+  const [formCompleted, setFormCompleted] = useState(false);
 
   useEffect(() => {
     const timer1 = setTimeout(() => setAnimateOut(true), 1000);
     const timer2 = setTimeout(() => setLoading(false), 2000);
 
     const checkUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: userRecord, error: roleError } = await supabase
+      const { data: userRecord, error } = await supabase
         .from("users")
-        .select("role, status")
+        .select("role, status, full_name, dob")
         .eq("id", user.id)
         .single();
 
-      if (roleError || !userRecord) {
-        console.warn("Unable to fetch user role/status:", roleError?.message);
+      if (error || !userRecord) {
+        console.warn("Unable to fetch user data:", error?.message);
         return;
       }
 
-      const { role, status } = userRecord;
+      const { role, status, full_name, dob } = userRecord;
 
       if (["admin", "superadmin"].includes(role)) {
         setShowAdminButton(true);
@@ -37,6 +40,10 @@ export default function EntryPage() {
 
       if (status?.toLowerCase() === "leaving_pending") {
         setShowExitFormButton(true);
+      }
+
+      if (full_name && dob) {
+        setFormCompleted(true);
       }
     };
 
@@ -49,7 +56,8 @@ export default function EntryPage() {
   }, []);
 
   const handleOption = (answer) => {
-    navigate(answer === "recruit" ? "/recruitment" : "/admin-login");
+    if (answer === "recruit") navigate("/recruitment");
+    if (answer === "admin") navigate("/admin-login");
   };
 
   const assets = {
@@ -59,6 +67,7 @@ export default function EntryPage() {
     twitter: "https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//Twitter%20New%20X%20Logo%20Icons-08.png",
     facebook: "https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//Facebook.png",
     youtube: "https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//youtube.png",
+    grizzlyPromo: "https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//Obscura%20X%20Grizzly%20Background%20950x290.png"
   };
 
   if (loading) {
@@ -80,43 +89,55 @@ export default function EntryPage() {
 
   return (
     <div
-      className="relative min-h-screen bg-cover bg-center flex flex-col items-center justify-center text-white px-4 before:absolute before:inset-0 before:bg-purple-900/60 before:z-0 before:animate-fade"
+      className="relative min-h-screen bg-cover bg-center flex flex-col items-center justify-start text-white px-4 before:absolute before:inset-0 before:bg-purple-900/60 before:z-0 before:animate-fade"
       style={{ backgroundImage: `url('${assets.background}')` }}
     >
-      <div className="relative z-10 flex flex-col items-center">
+      <div className="relative z-10 flex flex-col items-center w-full">
+        <NavigationBar />
+
         <img
           src={assets.logo}
           alt="Obscura Logo"
-          className="w-48 md:w-64 lg:w-72 mb-6 drop-shadow-xl animate-bounce"
+          className="w-48 md:w-64 lg:w-72 my-6 drop-shadow-xl animate-bounce"
         />
+
         <p className="text-lg md:text-xl mb-6 bg-black/50 p-4 rounded-lg shadow-md">
-          Are you here to be recruited or are you an admin?
+          Welcome back! What would you like to do?
         </p>
 
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          <button
-            onClick={() => handleOption("recruit")}
-            className="bg-purple-600 hover:bg-purple-700 active:scale-95 px-6 py-3 rounded-lg shadow-lg font-semibold transition-transform duration-200 transform hover:scale-105"
-          >
-            I'm being recruited
-          </button>
+        <div className="flex flex-wrap justify-center gap-4 mb-12 max-w-4xl w-full px-4">
+          {!formCompleted && (
+            <GradientButton onClick={() => handleOption("recruit")} className="w-full sm:w-auto min-w-[200px] text-center">
+              I'm being recruited
+            </GradientButton>
+          )}
+
+          {formCompleted && (
+            <>
+              <GradientButton onClick={() => navigate("/refer")} className="w-full sm:w-auto min-w-[200px] text-center">
+                I want to Refer someone
+              </GradientButton>
+
+              <GradientButton onClick={() => navigate("/update-details")} className="w-full sm:w-auto min-w-[200px] text-center">
+                I want to update my Details
+              </GradientButton>
+
+              <GradientButton onClick={() => navigate("/hr-support")} className="w-full sm:w-auto min-w-[200px] text-center">
+                Log an HR Support Ticket
+              </GradientButton>
+            </>
+          )}
 
           {showAdminButton && (
-            <button
-              onClick={() => handleOption("admin")}
-              className="bg-gray-700 hover:bg-gray-600 active:scale-95 px-6 py-3 rounded-lg shadow-lg font-semibold transition-transform duration-200 transform hover:scale-105"
-            >
+            <GradientButton onClick={() => handleOption("admin")} className="w-full sm:w-auto min-w-[200px] text-center">
               I'm an admin
-            </button>
+            </GradientButton>
           )}
 
           {showExitFormButton && (
-            <button
-              onClick={() => navigate("/exitform")}
-              className="bg-green-600 hover:bg-green-700 active:scale-95 px-6 py-3 rounded-lg shadow-lg font-semibold transition-transform duration-200 transform hover:scale-105"
-            >
+            <GradientButton onClick={() => navigate("/exitform")} className="w-full sm:w-auto min-w-[200px] text-center">
               Exit Form
-            </button>
+            </GradientButton>
           )}
         </div>
 
@@ -125,13 +146,15 @@ export default function EntryPage() {
             {["tiktok", "twitter", "facebook", "youtube"].map((platform) => (
               <a
                 key={platform}
-                href={platform === "tiktok"
-                  ? "https://www.tiktok.com/@obscura_e_sports?_t=8r4yZXkvp6E&_r=1"
-                  : platform === "twitter"
-                  ? "https://x.com/Obscuraesports"
-                  : platform === "facebook"
-                  ? "https://www.facebook.com/profile.php?id=61566312790023"
-                  : "https://www.youtube.com/@ObscuraEsports"}
+                href={
+                  platform === "tiktok"
+                    ? "https://www.tiktok.com/@obscura_e_sports?_t=8r4yZXkvp6E&_r=1"
+                    : platform === "twitter"
+                    ? "https://x.com/Obscuraesports"
+                    : platform === "facebook"
+                    ? "https://www.facebook.com/profile.php?id=61566312790023"
+                    : "https://www.youtube.com/@ObscuraEsports"
+                }
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -166,6 +189,17 @@ export default function EntryPage() {
             ))}
           </div>
         </div>
+
+        {/* Grizzly x Obscura Promo Image */}
+        <div className="mt-16 mb-10 flex justify-center w-full px-4">
+  <a href="https://grizzlyenergy.co.za/" target="_blank" rel="noopener noreferrer">
+    <img
+      src={assets.grizzlyPromo}
+      alt="Obscura x Grizzly"
+      className="w-full max-w-3xl rounded-xl shadow-2xl transition hover:scale-105 hover:shadow-pink-500/40"
+    />
+  </a>
+</div>
       </div>
     </div>
   );

@@ -40,12 +40,13 @@ export default function AdminLayout({ children }) {
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
-  const links = [
-    { href: "/admin-overview", label: "Overview", icon: "📊" },
-    { href: "/admin-dashboard", label: "Dashboard", icon: "📁" },
-    { href: "/streamers", label: "Streamers", icon: "🎥" },
-    { href: "/user-management", label: "User Management", icon: "👥" },
-  ];
+const links = [
+  { href: "/admin-overview", label: "Overview", icon: "📊" },
+  { href: "/admin-dashboard", label: "Dashboard", icon: "📁" },
+  { href: "/streamers", label: "Streamers", icon: "🎥" },
+  { href: "/user-management", label: "User Management", icon: "👥" },
+  { href: "/admin-hr-tickets", label: "HR Tickets", icon: "📨" },
+];
 
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
