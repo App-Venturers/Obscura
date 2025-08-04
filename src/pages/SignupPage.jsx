@@ -131,7 +131,7 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t.emailPlaceholder}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white text-black placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -142,7 +142,7 @@ export default function SignupPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t.passwordPlaceholder}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white text-black placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
           <button
