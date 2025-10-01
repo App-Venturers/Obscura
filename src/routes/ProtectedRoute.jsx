@@ -25,7 +25,7 @@ const hasAccess = (userRole, requiredRole) => {
  */
 const ProtectedRoute = ({ user, userRole = "user", role: requiredRole, children }) => {
   if (!user) return <Navigate to="/" replace />;
-  if (!hasAccess(userRole, requiredRole)) return <Navigate to="/entry" replace />;
+  if (!hasAccess(userRole, requiredRole)) return <Navigate to="/" replace />;
   return children;
 };
 

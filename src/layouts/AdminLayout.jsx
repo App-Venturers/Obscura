@@ -1,7 +1,38 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { motion, AnimatePresence } from "framer-motion";
 import { FiMenu, FiLogOut, FiSettings, FiX } from "react-icons/fi";
+
+// Animated floating particles component
+const FloatingParticles = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(10)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 bg-purple-500 rounded-full opacity-20"
+          initial={{
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          }}
+          animate={{
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          }}
+          transition={{
+            duration: Math.random() * 30 + 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          style={{
+            boxShadow: '0 0 4px rgba(168, 85, 247, 0.3)',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 export default function AdminLayout({ children }) {
   const navigate = useNavigate();
@@ -36,143 +67,281 @@ export default function AdminLayout({ children }) {
 
   useEffect(() => {
     setLoadingPage(true);
-    const timer = setTimeout(() => setLoadingPage(false), 1200);
+    const timer = setTimeout(() => setLoadingPage(false), 800);
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
-const links = [
-  { href: "/admin-overview", label: "Overview", icon: "📊" },
-  { href: "/admin-dashboard", label: "Dashboard", icon: "📁" },
-  { href: "/streamers", label: "Streamers", icon: "🎥" },
-  { href: "/user-management", label: "User Management", icon: "👥" },
-  { href: "/admin-hr-tickets", label: "HR Tickets", icon: "📨" },
-];
+  // Get user role from localStorage
+  const userRole = localStorage.getItem("userRole");
+
+  // Base links available to all admins
+  const baseLinks = [
+    { href: "/admin-overview", label: "Overview", icon: "📊" },
+    { href: "/admin-dashboard", label: "Dashboard", icon: "📁" },
+    { href: "/streamers", label: "Streamers", icon: "🎥" },
+    { href: "/team-management", label: "Team Management", icon: "⚔️" },
+    { href: "/admin-hr-tickets", label: "HR Tickets", icon: "📨" },
+  ];
+
+  // Add User Management only for superadmins
+  const links = userRole === "superadmin"
+    ? [
+        baseLinks[0], // Overview
+        baseLinks[1], // Dashboard
+        baseLinks[2], // Streamers
+        baseLinks[3], // Team Management
+        { href: "/user-management", label: "User Management", icon: "👥" },
+        baseLinks[4], // HR Tickets
+      ]
+    : baseLinks;
 
   return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="flex min-h-screen bg-black text-white relative">
+      {/* Background gradient */}
+      <div className="fixed inset-0 bg-gradient-to-br from-purple-900/10 via-black to-blue-900/10 pointer-events-none" />
+      <FloatingParticles />
+
       {/* Mobile Overlay */}
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-50 z-20 transition-opacity lg:hidden ${
-          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setSidebarOpen(false)}
-      />
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
       <aside
-        className={`fixed z-30 lg:static transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 shadow-lg h-full
-          ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}
-          lg:translate-x-0 ${sidebarCollapsed ? "lg:w-20" : "lg:w-64"}
-        `}
+        className={`${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } fixed z-30 lg:static lg:translate-x-0 transition-all duration-300 ease-in-out bg-black/40 backdrop-blur-lg border-r border-purple-700/30 h-full shadow-2xl ${
+          sidebarCollapsed ? "lg:w-20" : "lg:w-64"
+        } w-64`}
       >
         <div className="px-4 py-6 flex flex-col h-full justify-between">
           <div>
+            {/* Collapse button - Desktop only */}
             <div className="hidden lg:flex justify-end mb-4">
-              <button
-                className="text-gray-400 hover:text-white"
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-purple-400 hover:text-purple-300 transition-colors"
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               >
                 {sidebarCollapsed ? <FiMenu size={20} /> : <FiX size={20} />}
-              </button>
+              </motion.button>
             </div>
 
+            {/* Logo/Title */}
             <h2
-              className={`text-xl font-bold mb-6 tracking-wide transition-all ${
-                sidebarCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+              className={`text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500 mb-8 text-center transition-all duration-200 ${
+                sidebarCollapsed ? "opacity-0 scale-0" : "opacity-100 scale-100"
               }`}
             >
-              Admin Panel
+              ADMIN PANEL
             </h2>
 
-            <nav className="space-y-2 text-sm">
-              {links.map(({ href, label, icon }) => (
-                <a
+            {/* Back to Home Button */}
+            <motion.button
+              onClick={() => navigate("/")}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              whileHover={{ scale: 1.02, x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full flex items-center px-4 py-3 rounded-lg transition-all duration-300 font-medium group relative overflow-hidden mb-4 bg-gradient-to-r from-gray-700/30 to-gray-600/30 border border-gray-500/30 text-gray-300 hover:from-gray-600/30 hover:to-gray-500/30 hover:text-white hover:border-gray-400/50"
+            >
+              <span className="relative mr-3 text-lg">🏠</span>
+              {!sidebarCollapsed && (
+                <span className="relative">Back to Home</span>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-gray-600/0 to-gray-500/0 group-hover:from-gray-600/10 group-hover:to-gray-500/10 transition-all duration-300" />
+            </motion.button>
+
+            {/* Navigation Links */}
+            <nav className="space-y-2">
+              {links.map(({ href, label, icon }, index) => (
+                <motion.a
                   key={href}
                   href={href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center px-4 py-2 rounded transition font-medium ${
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(href);
+                    setSidebarOpen(false);
+                  }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-300 font-medium group relative overflow-hidden ${
                     location.pathname === href
-                      ? "bg-blue-600 text-white"
-                      : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                      ? "bg-gradient-to-r from-purple-600/30 to-blue-600/30 border border-purple-500/30 text-white shadow-lg shadow-purple-500/20"
+                      : "hover:bg-purple-600/10 hover:border hover:border-purple-700/30 text-purple-300 hover:text-white"
                   }`}
                 >
-                  <span className="mr-2 text-lg">{icon}</span>
-                  {!sidebarCollapsed && <span>{label}</span>}
-                </a>
+                  {/* Active indicator */}
+                  {location.pathname === href && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+
+                  <span className="relative mr-3 text-lg">{icon}</span>
+                  {!sidebarCollapsed && (
+                    <span className="relative">{label}</span>
+                  )}
+
+                  {/* Hover glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 to-blue-600/0 group-hover:from-purple-600/10 group-hover:to-blue-600/10 transition-all duration-300" />
+                </motion.a>
               ))}
             </nav>
           </div>
 
-          <div className="hidden lg:block text-xs text-gray-400">
+          {/* Footer */}
+          <div className="hidden lg:block">
             {!sidebarCollapsed && (
-              <p className="mt-8">&copy; {new Date().getFullYear()} Obscura</p>
+              <p className="text-xs text-purple-400/50 text-center">
+                © {new Date().getFullYear()} Obscura
+              </p>
             )}
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-screen">
+      <main className="flex-1 flex flex-col min-h-screen relative z-10">
         {/* Header */}
-        <header className="bg-white dark:bg-gray-800 shadow px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button
-              className="text-2xl text-gray-700 dark:text-gray-300 lg:hidden"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label="Toggle Sidebar"
-            >
-              {sidebarOpen ? <FiX /> : <FiMenu />}
-            </button>
-            <h1 className="text-lg font-semibold tracking-wide">Obscura Admin</h1>
-          </div>
+        <header className="bg-black/40 backdrop-blur-lg border-b border-purple-700/30 px-6 py-4 shadow-xl">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              {/* Mobile menu button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-2xl text-purple-400 hover:text-purple-300 lg:hidden transition-colors"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label="Toggle Sidebar"
+              >
+                {sidebarOpen ? <FiX /> : <FiMenu />}
+              </motion.button>
 
-          <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300">
-            {adminInfo && (
-              <div className="flex items-center gap-2">
-                {adminInfo.avatar ? (
-                  <img
-                    src={adminInfo.avatar}
-                    alt="Admin Avatar"
-                    className="w-8 h-8 rounded-full object-cover border-2 border-purple-600"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
-                    {adminInfo.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="text-sm font-medium">{adminInfo.name}</span>
-              </div>
-            )}
-            <FiSettings className="cursor-pointer hover:text-blue-500 transition" />
-            <FiLogOut
-              className="cursor-pointer hover:text-red-500 transition"
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate("/");
-              }}
-            />
+              <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
+                Obscura Administration
+              </h1>
+            </div>
+
+            {/* User Info & Actions */}
+            <div className="flex items-center gap-4">
+              {adminInfo && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center gap-3"
+                >
+                  {adminInfo.avatar ? (
+                    <img
+                      src={adminInfo.avatar}
+                      alt="Admin Avatar"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-purple-500 shadow-lg shadow-purple-500/25"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center font-bold shadow-lg shadow-purple-500/25">
+                      {adminInfo.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-purple-300 hidden sm:block">
+                    {adminInfo.name}
+                  </span>
+                </motion.div>
+              )}
+
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-purple-400 hover:text-purple-300 transition-colors"
+              >
+                <FiSettings className="text-xl" />
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-red-400 hover:text-red-300 transition-colors"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate("/");
+                }}
+              >
+                <FiLogOut className="text-xl" />
+              </motion.button>
+            </div>
           </div>
         </header>
 
-        {/* Loading */}
-        {loadingPage ? (
-          <div className="flex flex-col items-center justify-center flex-1 bg-black text-white animate-fade-in">
-            <img
-              src="https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//ObscuraLogo.png"
-              alt="Loading Logo"
-              className="w-48 h-auto animate-pulse mb-6"
-            />
-            <h2 className="text-xl font-semibold">Loading Obscura Dashboard...</h2>
-          </div>
-        ) : (
-          <section className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900">
-            {children}
-          </section>
-        )}
+        {/* Page Content with Loading */}
+        <AnimatePresence mode="wait">
+          {loadingPage ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex-1 flex flex-col items-center justify-center bg-black relative overflow-hidden"
+            >
+              <FloatingParticles />
+              <motion.img
+                src="https://tccglukvhjvrrjkjshet.supabase.co/storage/v1/object/public/public-assets//ObscuraLogo.png"
+                alt="Loading Logo"
+                className="w-48 h-auto mb-6"
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.7, 1, 0.7],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500"
+              >
+                Loading Dashboard...
+              </motion.h2>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="w-10 h-10 border-3 border-purple-500 border-t-transparent rounded-full mt-4"
+              />
+            </motion.div>
+          ) : (
+            <motion.section
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex-1 overflow-y-auto p-4 md:p-6 bg-black/20"
+            >
+              {children}
+            </motion.section>
+          )}
+        </AnimatePresence>
 
         {/* Footer */}
-        <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-          &copy; {new Date().getFullYear()} Obscura. All rights reserved.
+        <footer className="bg-black/40 backdrop-blur-lg border-t border-purple-700/30 p-4 text-center">
+          <p className="text-sm text-purple-400/50">
+            © {new Date().getFullYear()} Obscura eSports. All rights reserved.
+          </p>
         </footer>
       </main>
     </div>

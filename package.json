@@ -1,5 +1,5 @@
 {
-  "name": "obscura-recruitment",
+  "name": "obscura-esports",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -26,7 +26,8 @@
     "react-player": "^2.16.0",
     "react-router-dom": "^6.22.2",
     "react-scripts": "^5.0.1",
-    "react-tooltip": "^5.29.1"
+    "react-tooltip": "^5.29.1",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",

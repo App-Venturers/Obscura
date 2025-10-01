@@ -2,7 +2,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import EntryPage from "../components/EntryPage";
+import LandingPage from "../pages/LandingPage";
 import RecruitmentForm from "../components/RecruitmentForm";
 import MinorRecruitmentForm from "../components/MinorRecruitmentform";
 import ExitForm from "../components/ExitForm";
@@ -16,60 +16,59 @@ import UpdatePassword from "../pages/UpdatePassword";
 import AdminOverview from "../pages/AdminOverview";
 import StreamerDashboard from "../pages/StreamerDashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import OnboardingProtectedRoute from "./OnboardingProtectedRoute";
 import ReferPage from "../pages/ReferPage";
 import UpdateDetailsPage from "../pages/UpdateDetailsPage";
 import HRSupportPage from "../pages/HRSupportPage";
 import MyHRTicketsPage from "../pages/MyHRTicketsPage";
 import AdminHRTicketsPage from "../pages/AdminHRTicketsPage";
+import TeamManagementPage from "../pages/TeamManagementPage";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
-const AppRoutes = ({ user, role }) => {
+const AppRoutes = ({ user, role, hasCompletedOnboarding }) => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<LandingPage user={user} />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/update-password" element={<UpdatePassword />} />
       <Route path="/admin-login" element={<AdminLogin />} />
 
       {/* Authenticated Routes */}
       <Route
-        path="/entry"
-        element={
-          <ProtectedRoute user={user} userRole={role}>
-            <EntryPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/refer"
         element={
-          <ProtectedRoute user={user} userRole={role}>
+          <OnboardingProtectedRoute user={user} userRole={role} hasCompletedOnboarding={hasCompletedOnboarding}>
             <ReferPage />
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/update-details"
         element={
-          <ProtectedRoute user={user} userRole={role}>
+          <OnboardingProtectedRoute user={user} userRole={role} hasCompletedOnboarding={hasCompletedOnboarding}>
             <UpdateDetailsPage />
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/hr-support"
         element={
-          <ProtectedRoute user={user} userRole={role}>
+          <OnboardingProtectedRoute user={user} userRole={role} hasCompletedOnboarding={hasCompletedOnboarding}>
             <HRSupportPage />
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/my-hr-tickets"
         element={
-          <ProtectedRoute user={user} userRole={role}>
+          <OnboardingProtectedRoute user={user} userRole={role} hasCompletedOnboarding={hasCompletedOnboarding}>
             <MyHRTicketsPage />
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
@@ -91,9 +90,9 @@ const AppRoutes = ({ user, role }) => {
       <Route
         path="/exitform"
         element={
-          <ProtectedRoute user={user} userRole={role}>
+          <OnboardingProtectedRoute user={user} userRole={role} hasCompletedOnboarding={hasCompletedOnboarding}>
             <ExitForm />
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
 
@@ -150,8 +149,19 @@ const AppRoutes = ({ user, role }) => {
   }
 />
 
+      <Route
+        path="/team-management"
+        element={
+          <ProtectedRoute user={user} userRole={role} role="admin">
+            <AdminLayout>
+              <TeamManagementPage />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Fallback */}
-      <Route path="*" element={<Navigate to={user ? "/entry" : "/"} replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

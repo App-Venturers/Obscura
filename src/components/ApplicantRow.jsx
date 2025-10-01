@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import { motion } from "framer-motion";
 
 export default function ApplicantRow({
   user,
@@ -7,6 +8,7 @@ export default function ApplicantRow({
   updateStatus,
   openNotesModal,
   openEditModal,
+  index = 0,
 }) {
   const generatePDF = (row) => {
     const doc = new jsPDF();
@@ -102,72 +104,127 @@ export default function ApplicantRow({
   };
 
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-      <td className="p-3 border">
+    <motion.tr
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+      className="border-b border-purple-700/20 hover:bg-purple-900/10 transition-all duration-200"
+    >
+      <td className="p-4">
         <input
           type="checkbox"
           checked={isSelected}
           onChange={() => toggleSelect(user.id)}
+          className="w-4 h-4 text-purple-600 bg-black/30 border-purple-700/30 rounded focus:ring-2 focus:ring-purple-500/20 focus:ring-offset-0"
         />
       </td>
-      <td className="p-3 border">{user.full_name}</td>
-      <td className="p-3 border">{user.email}</td>
-      <td className="p-3 border">{user.is_minor ? "Yes" : "No"}</td>
-      <td className="p-3 border capitalize">{user.status || "pending"}</td>
-      <td className="p-3 border">
+      <td className="p-4 text-white font-medium">{user.full_name}</td>
+      <td className="p-4 text-purple-300">{user.email}</td>
+      <td className="p-4">
+        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+          user.is_minor
+            ? 'bg-amber-600/20 text-amber-400 border border-amber-600/30'
+            : 'bg-green-600/20 text-green-400 border border-green-600/30'
+        }`}>
+          {user.is_minor ? "Yes" : "No"}
+        </span>
+      </td>
+      <td className="p-4">
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
+          user.status === 'approved' ? 'bg-green-600/20 text-green-400 border border-green-600/30' :
+          user.status === 'declined' ? 'bg-red-600/20 text-red-400 border border-red-600/30' :
+          user.status === 'banned' ? 'bg-red-900/20 text-red-300 border border-red-900/30' :
+          user.status === 'left' ? 'bg-gray-600/20 text-gray-400 border border-gray-600/30' :
+          user.status === 'leaving_pending' ? 'bg-amber-600/20 text-amber-400 border border-amber-600/30' :
+          'bg-purple-600/20 text-purple-400 border border-purple-600/30'
+        }`}>
+          {user.status || "pending"}
+        </span>
+      </td>
+      <td className="p-4 text-gray-400">
         {new Date(user.created_at).toLocaleDateString()}
       </td>
-      <td className="p-3 border space-y-1">
-        <div className="grid grid-cols-2 gap-1">
-          <button
+      <td className="p-4">
+        <div className="flex flex-wrap gap-1">
+          {/* Action Buttons */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => updateStatus(user.id, "approved")}
-            className="bg-green-600 text-white rounded px-2 py-1 text-xs"
+            className="px-3 py-1.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-xs font-semibold rounded-md hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-green-500/25"
           >
             Approve
-          </button>
-          <button
-            onClick={() => updateStatus(user.id, "leaving_pending")}
-            className="bg-yellow-500 text-white rounded px-2 py-1 text-xs"
-          >
-            Leaving
-          </button>
-          <button
-            onClick={() => updateStatus(user.id, "left")}
-            className="bg-gray-600 text-white rounded px-2 py-1 text-xs"
-          >
-            Left
-          </button>
-          <button
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => openNotesModal(user.id)}
-            className="bg-red-600 text-white rounded px-2 py-1 text-xs"
+            className="px-3 py-1.5 bg-gradient-to-r from-red-600 to-pink-600 text-white text-xs font-semibold rounded-md hover:from-red-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-red-500/25"
           >
             Decline
-          </button>
-          <button
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => updateStatus(user.id, "leaving_pending")}
+            className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-xs font-semibold rounded-md hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-md hover:shadow-amber-500/25"
+          >
+            Leaving
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => updateStatus(user.id, "left")}
+            className="px-3 py-1.5 bg-gradient-to-r from-gray-600 to-slate-600 text-white text-xs font-semibold rounded-md hover:from-gray-700 hover:to-slate-700 transition-all duration-200 shadow-md hover:shadow-gray-500/25"
+          >
+            Left
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => updateStatus(user.id, "banned")}
-            className="bg-black text-white rounded px-2 py-1 text-xs"
+            className="px-3 py-1.5 bg-gradient-to-r from-red-900 to-red-700 text-white text-xs font-semibold rounded-md hover:from-red-950 hover:to-red-800 transition-all duration-200 shadow-md hover:shadow-red-900/25"
           >
             Ban
-          </button>
-          <button
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => generatePDF(user)}
-            className="bg-blue-600 text-white rounded px-2 py-1 text-xs"
+            className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs font-semibold rounded-md hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 shadow-md hover:shadow-blue-500/25"
           >
             PDF
-          </button>
-          <button
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => openEditModal(user)}
-            className="bg-purple-600 text-white rounded px-2 py-1 text-xs"
+            className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-semibold rounded-md hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-purple-500/25"
           >
             Edit
-          </button>
+          </motion.button>
         </div>
+
+        {/* Decline Notes */}
         {user.decline_notes && (
-          <div className="text-xs text-yellow-600 mt-1">
-            Note: {user.decline_notes}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            transition={{ duration: 0.3 }}
+            className="mt-2 p-2 bg-yellow-900/20 border border-yellow-700/30 rounded-md"
+          >
+            <p className="text-xs text-yellow-400">
+              <span className="font-semibold">Note:</span> {user.decline_notes}
+            </p>
+          </motion.div>
         )}
       </td>
-    </tr>
+    </motion.tr>
   );
 }

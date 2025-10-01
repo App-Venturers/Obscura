@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export default function NavigationBar() {
-  const [fullName, setFullName] = useState("");
+  const [gamertag, setGamertag] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -26,12 +26,12 @@ export default function NavigationBar() {
 
       const { data, error } = await supabase
         .from("users")
-        .select("full_name, role, is_admin, is_superadmin")
+        .select("gamertag, role, is_admin, is_superadmin")
         .eq("id", user.id)
         .single();
 
-      if (!error && data?.full_name) {
-        setFullName(data.full_name);
+      if (!error && data?.gamertag) {
+        setGamertag(data.gamertag);
         if (
           data.role === "admin" ||
           data.role === "superadmin" ||
@@ -54,7 +54,7 @@ export default function NavigationBar() {
   const toggleMenu = () => setIsOpen((prev) => !prev);
 
   const commonLinks = [
-    { label: "Home", path: "/entry", icon: <Home size={18} /> }, // ✅ FIXED PATH
+    { label: "Home", path: "/", icon: <Home size={18} /> },
     { label: "Refer", path: "/refer", icon: <UserPlus size={18} /> },
     { label: "Update Details", path: "/update-details", icon: <Edit3 size={18} /> },
     { label: "HR Support", path: "/hr-support", icon: <FilePlus size={18} /> },
@@ -93,7 +93,7 @@ export default function NavigationBar() {
             </button>
           ))}
           <span className="text-sm font-semibold text-purple-200 hidden md:inline">
-            {fullName ? `Welcome, ${fullName}` : ""}
+            {gamertag ? `Welcome, ${gamertag}` : ""}
           </span>
           <button
             onClick={handleLogout}
@@ -125,7 +125,7 @@ export default function NavigationBar() {
             ))}
             <div className="flex justify-between items-center mt-4 px-1">
               <span className="text-sm font-semibold text-purple-200">
-                {fullName ? `Welcome, ${fullName}` : ""}
+                {gamertag ? `Welcome, ${gamertag}` : ""}
               </span>
               <button
                 onClick={handleLogout}
